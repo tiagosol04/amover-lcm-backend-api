@@ -1,6 +1,6 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿using System.Security.Claims;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using System.Security.Claims;
 
 namespace API_AMOVER.Controllers
 {
@@ -8,27 +8,22 @@ namespace API_AMOVER.Controllers
     [Route("api/me")]
     public class MeController : ControllerBase
     {
-        [Authorize]
         [HttpGet]
-        public IActionResult Get()
+        [Authorize]
+        public ActionResult<object> GetMe()
         {
-            string? userId =
-                User.FindFirstValue("uid") ??
-                User.FindFirstValue("sub") ??
-                User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier) ?? "";
+            var username = User.FindFirstValue(ClaimTypes.Name) ?? "";
+            var email = User.FindFirstValue(ClaimTypes.Email) ?? "";
+            var roles = User.FindAll(ClaimTypes.Role).Select(r => r.Value).Distinct().ToList();
 
-            string? username =
-                User.FindFirstValue("unique_name") ??
-                User.FindFirstValue(ClaimTypes.Name) ??
-                User.Identity?.Name;
-
-            string? email =
-                User.FindFirstValue("email") ??
-                User.FindFirstValue(ClaimTypes.Email);
-
-            var roles = User.FindAll(ClaimTypes.Role).Select(r => r.Value).Distinct().ToArray();
-
-            return Ok(new { userId, username, email, roles });
+            return Ok(new
+            {
+                userId,
+                username,
+                email,
+                roles
+            });
         }
     }
 }

@@ -1,102 +1,86 @@
-﻿using System.Text;
-using API_AMOVER.Data;
+﻿using API_AMOVER.Data;
+using API_AMOVER.Data.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Controllers
 builder.Services.AddControllers();
 
-// CORS (útil para Swagger/testes; em apps nativas normalmente não é necessário, mas não prejudica)
+// CORS (útil para Swagger e Web, mobile não precisa mas não faz mal)
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy("AllowAll", policy =>
+    options.AddPolicy("DevCors", policy =>
         policy.AllowAnyOrigin()
               .AllowAnyHeader()
               .AllowAnyMethod());
 });
 
-// DbContext (com retry)
+// DB
 builder.Services.AddDbContext<LcmContext>(options =>
-{
-    var cs = builder.Configuration.GetConnectionString("LCMDatabase");
-    if (string.IsNullOrWhiteSpace(cs))
-        throw new InvalidOperationException("Connection string 'LCMDatabase' não encontrada.");
+    options.UseSqlServer(builder.Configuration.GetConnectionString("LCMDatabase")));
 
-    options.UseSqlServer(cs, sql =>
-    {
-        sql.EnableRetryOnFailure(
-            maxRetryCount: 5,
-            maxRetryDelay: TimeSpan.FromSeconds(5),
-            errorNumbersToAdd: null
-        );
-    });
-});
+// JWT
+var jwtSection = builder.Configuration.GetSection("Jwt");
+var jwtKey = jwtSection.GetValue<string>("Key");
 
-// JWT Auth
-var jwtKey = builder.Configuration["Jwt:Key"];
-var jwtIssuer = builder.Configuration["Jwt:Issuer"];
-var jwtAudience = builder.Configuration["Jwt:Audience"];
-
-if (string.IsNullOrWhiteSpace(jwtKey) || string.IsNullOrWhiteSpace(jwtIssuer) || string.IsNullOrWhiteSpace(jwtAudience))
-    throw new InvalidOperationException("Configuração JWT em falta (Jwt:Key/Issuer/Audience).");
-
-var signingKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey));
+if (string.IsNullOrWhiteSpace(jwtKey))
+    throw new InvalidOperationException("Falta configurar Jwt:Key no appsettings.json");
 
 builder.Services
     .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
     {
-        // Para DEV e para emuladores/telemóvel (HTTP), isto evita problemas
-        options.RequireHttpsMetadata = false;
-
         options.TokenValidationParameters = new TokenValidationParameters
         {
             ValidateIssuer = true,
             ValidateAudience = true,
             ValidateLifetime = true,
             ValidateIssuerSigningKey = true,
-            ValidIssuer = jwtIssuer,
-            ValidAudience = jwtAudience,
-            IssuerSigningKey = signingKey,
-            ClockSkew = TimeSpan.Zero
+
+            ValidIssuer = jwtSection.GetValue<string>("Issuer"),
+            ValidAudience = jwtSection.GetValue<string>("Audience"),
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey)),
+
+            ClockSkew = TimeSpan.FromMinutes(2)
         };
     });
 
-builder.Services.AddAuthorization();
+// ✅ Agora TODOS os endpoints vão exigir token por defeito
+// Só endpoints com [AllowAnonymous] ficam públicos
+builder.Services.AddAuthorization(options =>
+{
+    options.FallbackPolicy = new AuthorizationPolicyBuilder()
+        .RequireAuthenticatedUser()
+        .Build();
+});
 
-// Swagger + Bearer
+// Swagger + botão Authorize
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {
     c.SwaggerDoc("v1", new OpenApiInfo { Title = "API_AMOVER", Version = "v1" });
 
-    c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+    var securityScheme = new OpenApiSecurityScheme
     {
         Name = "Authorization",
+        Description = "Insere: Bearer {token}",
+        In = ParameterLocation.Header,
         Type = SecuritySchemeType.Http,
         Scheme = "bearer",
-        BearerFormat = "JWT",
-        In = ParameterLocation.Header,
-        Description = "Cola aqui o token JWT (sem escrever 'Bearer ')"
-    });
+        BearerFormat = "JWT"
+    };
+
+    c.AddSecurityDefinition("Bearer", securityScheme);
 
     c.AddSecurityRequirement(new OpenApiSecurityRequirement
     {
-        {
-            new OpenApiSecurityScheme
-            {
-                Reference = new OpenApiReference
-                {
-                    Type = ReferenceType.SecurityScheme,
-                    Id = "Bearer"
-                }
-            },
-            new string[] {}
-        }
+        { securityScheme, Array.Empty<string>() }
     });
 });
 
@@ -108,13 +92,13 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
-// IMPORTANTE: em DEV não forçamos HTTPS (para não lixar emulador/telemóvel)
+// ✅ Muito importante para o EMULADOR e HTTP: NÃO redirecionar em Development
 if (!app.Environment.IsDevelopment())
 {
     app.UseHttpsRedirection();
 }
 
-app.UseCors("AllowAll");
+app.UseCors("DevCors");
 
 app.UseAuthentication();
 app.UseAuthorization();
