@@ -6,7 +6,6 @@ using API_AMOVER.Data.Models;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 
 namespace API_AMOVER.Controllers
@@ -15,223 +14,189 @@ namespace API_AMOVER.Controllers
     [Route("api/auth")]
     public class AuthController : ControllerBase
     {
-        private readonly LcmContext _db;
-        private readonly IConfiguration _config;
+        private readonly LcmContext _context;
+        private readonly IConfiguration _configuration;
+        private readonly PasswordHasher<AspNetUser> _passwordHasher;
 
-        public AuthController(LcmContext db, IConfiguration config)
-        {
-            _db = db;
-            _config = config;
-        }
+        // IMPORTANT: tem de bater certo com o Program.cs
+        private const string JwtKeyId = "amover-signing-key-1";
 
-        // DTOs (podem ficar aqui para simplicidade)
-        public class LoginRequest
+        public AuthController(LcmContext context, IConfiguration configuration)
         {
-            public string? UsernameOrEmail { get; set; }
-            public string? Password { get; set; }
-        }
-
-        public class LoginNfcRequest
-        {
-            // UID do NFC (ou outro identificador que vocês decidirem)
-            public string? NfcUid { get; set; }
+            _context = context;
+            _configuration = configuration;
+            _passwordHasher = new PasswordHasher<AspNetUser>();
         }
 
         [HttpPost("login")]
-        public async Task<IActionResult> Login([FromBody] LoginRequest req)
+        public async Task<IActionResult> Login([FromBody] LoginRequest request)
         {
-            if (string.IsNullOrWhiteSpace(req.UsernameOrEmail) || string.IsNullOrWhiteSpace(req.Password))
-                return BadRequest(new { message = "Username/Email e Password são obrigatórios." });
+            if (string.IsNullOrWhiteSpace(request.UsernameOrEmail) || string.IsNullOrWhiteSpace(request.Password))
+                return BadRequest("usernameOrEmail e password são obrigatórios.");
 
-            var key = _config["Jwt:Key"];
-            var issuer = _config["Jwt:Issuer"];
-            var audience = _config["Jwt:Audience"];
-            var expiresMinutesStr = _config["Jwt:ExpiresMinutes"];
-
-            if (string.IsNullOrWhiteSpace(key) || string.IsNullOrWhiteSpace(issuer) || string.IsNullOrWhiteSpace(audience))
-                return StatusCode(500, new { message = "Configuração JWT em falta (Jwt:Key/Issuer/Audience)." });
-
-            int expiresMinutes = 120;
-            if (!string.IsNullOrWhiteSpace(expiresMinutesStr) && int.TryParse(expiresMinutesStr, out var m))
-                expiresMinutes = m;
-
-            // 1) procurar utilizador por Email ou UserName
-            var usernameOrEmail = req.UsernameOrEmail.Trim();
-
-            var user = await _db.AspNetUsers
-                .AsNoTracking()
+            var user = await _context.AspNetUsers
+                .Include(u => u.Roles)
                 .FirstOrDefaultAsync(u =>
-                    u.Email == usernameOrEmail ||
-                    u.UserName == usernameOrEmail ||
-                    (u.NormalizedEmail != null && u.NormalizedEmail == usernameOrEmail.ToUpperInvariant()) ||
-                    (u.NormalizedUserName != null && u.NormalizedUserName == usernameOrEmail.ToUpperInvariant())
-                );
+                    u.UserName == request.UsernameOrEmail ||
+                    u.Email == request.UsernameOrEmail);
 
             if (user == null)
-                return Unauthorized(new { message = "Credenciais inválidas." });
+                return Unauthorized("Credenciais inválidas.");
 
-            // 2) validar password hashed (Identity)
-            var hasher = new PasswordHasher<AspNetUser>();
-            var hash = user.PasswordHash ?? "";
-
-            var verify = hasher.VerifyHashedPassword(user, hash, req.Password);
+            var verify = _passwordHasher.VerifyHashedPassword(user, user.PasswordHash ?? "", request.Password);
             if (verify == PasswordVerificationResult.Failed)
-                return Unauthorized(new { message = "Credenciais inválidas." });
+                return Unauthorized("Credenciais inválidas.");
 
-            // 3) ir buscar roles do utilizador (AspNetUserRoles + AspNetRoles)
-            // Como o scaffold normalmente não gera entidade AspNetUserRole,
-            // fazemos query com FromSqlRaw (simples e robusto).
-            var roles = await GetUserRoles(user.Id);
-
-            // 4) gerar token
-            var now = DateTime.UtcNow;
-            var expiresAt = now.AddMinutes(expiresMinutes);
-
-            var claims = new List<Claim>
-            {
-                new Claim(JwtRegisteredClaimNames.Sub, user.Id),
-                new Claim(JwtRegisteredClaimNames.UniqueName, user.UserName ?? user.Email ?? user.Id),
-                new Claim(JwtRegisteredClaimNames.Email, user.Email ?? ""),
-                new Claim("uid", user.Id),
-            };
-
-            foreach (var r in roles)
-                claims.Add(new Claim(ClaimTypes.Role, r));
-
-            var signingKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(key));
-            var creds = new SigningCredentials(signingKey, SecurityAlgorithms.HmacSha256);
-
-            var token = new JwtSecurityToken(
-                issuer: issuer,
-                audience: audience,
-                claims: claims,
-                notBefore: now,
-                expires: expiresAt,
-                signingCredentials: creds
-            );
-
-            var jwt = new JwtSecurityTokenHandler().WriteToken(token);
-
-            return Ok(new
-            {
-                token = jwt,
-                expiresAtUtc = expiresAt,
-                user = new
-                {
-                    id = user.Id,
-                    username = user.UserName,
-                    email = user.Email,
-                    roles
-                }
-            });
+            var response = IssueTokenForUser(user);
+            return Ok(response);
         }
 
-        // NFC login (exemplo “real”)
-        // Precisas de uma forma de mapear NFC -> utilizador.
-        // O ideal é teres uma tabela tipo Utilizadores (tua) com NfcUid,
-        // ou uma tabela AspNetUserClaims com claimType="nfc_uid".
+        // Exemplo (se quiseres mesmo suportar NFC):
+        // neste momento está como placeholder (troca a lógica para procurar pelo identificador NFC real)
         [HttpPost("login-nfc")]
-        public async Task<IActionResult> LoginNfc([FromBody] LoginNfcRequest req)
+        public async Task<IActionResult> LoginNfc([FromBody] NfcLoginRequest request)
         {
-            if (string.IsNullOrWhiteSpace(req.NfcUid))
-                return BadRequest(new { message = "NfcUid é obrigatório." });
+            if (string.IsNullOrWhiteSpace(request.NfcIdentifier))
+                return BadRequest("nfcIdentifier é obrigatório.");
 
-            // Exemplo: NFC guardado como Claim no Identity (AspNetUserClaims)
-            var nfc = req.NfcUid.Trim();
+            // TODO: substituir por lookup real (ex.: tabela UtilizadorNfc / campo NfcId)
+            var user = await _context.AspNetUsers
+                .Include(u => u.Roles)
+                .FirstOrDefaultAsync(u => u.UserName == request.NfcIdentifier || u.Email == request.NfcIdentifier);
 
-            var userId = await _db.AspNetUserClaims
-                .AsNoTracking()
-                .Where(c => c.ClaimType == "nfc_uid" && c.ClaimValue == nfc)
-                .Select(c => c.UserId)
-                .FirstOrDefaultAsync();
-
-            if (string.IsNullOrWhiteSpace(userId))
-                return Unauthorized(new { message = "NFC não associado a nenhum utilizador." });
-
-            var user = await _db.AspNetUsers.AsNoTracking().FirstOrDefaultAsync(u => u.Id == userId);
             if (user == null)
-                return Unauthorized(new { message = "Utilizador não encontrado." });
+                return Unauthorized("Utilizador NFC não encontrado.");
 
-            // gerar token igual ao login normal (sem password)
-            var fakeReq = new LoginRequest { UsernameOrEmail = user.Email ?? user.UserName, Password = "N/A" };
-            return await IssueTokenForUser(user);
+            var response = IssueTokenForUser(user);
+            return Ok(response);
         }
 
-        private async Task<IActionResult> IssueTokenForUser(AspNetUser user)
+        [HttpPost("register")]
+        public async Task<IActionResult> Register([FromBody] RegisterRequest request)
         {
-            var key = _config["Jwt:Key"];
-            var issuer = _config["Jwt:Issuer"];
-            var audience = _config["Jwt:Audience"];
-            var expiresMinutesStr = _config["Jwt:ExpiresMinutes"];
+            if (string.IsNullOrWhiteSpace(request.Username) ||
+                string.IsNullOrWhiteSpace(request.Email) ||
+                string.IsNullOrWhiteSpace(request.Password) ||
+                string.IsNullOrWhiteSpace(request.Role))
+            {
+                return BadRequest("username, email, password e role são obrigatórios.");
+            }
 
-            if (string.IsNullOrWhiteSpace(key) || string.IsNullOrWhiteSpace(issuer) || string.IsNullOrWhiteSpace(audience))
-                return StatusCode(500, new { message = "Configuração JWT em falta (Jwt:Key/Issuer/Audience)." });
+            var usernameExists = await _context.AspNetUsers.AnyAsync(u => u.UserName == request.Username);
+            if (usernameExists) return Conflict("Username já existe.");
 
-            int expiresMinutes = 120;
-            if (!string.IsNullOrWhiteSpace(expiresMinutesStr) && int.TryParse(expiresMinutesStr, out var m))
-                expiresMinutes = m;
+            var emailExists = await _context.AspNetUsers.AnyAsync(u => u.Email == request.Email);
+            if (emailExists) return Conflict("Email já existe.");
 
-            var roles = await GetUserRoles(user.Id);
+            var roleEntity = await _context.AspNetRoles.FirstOrDefaultAsync(r => r.Name == request.Role);
+            if (roleEntity == null) return BadRequest("Role inválida (não existe na BD).");
 
-            var now = DateTime.UtcNow;
-            var expiresAt = now.AddMinutes(expiresMinutes);
+            var user = new AspNetUser
+            {
+                Id = Guid.NewGuid().ToString(),
+                UserName = request.Username,
+                NormalizedUserName = request.Username.ToUpperInvariant(),
+                Email = request.Email,
+                NormalizedEmail = request.Email.ToUpperInvariant(),
+                EmailConfirmed = true,
+                SecurityStamp = Guid.NewGuid().ToString(),
+                ConcurrencyStamp = Guid.NewGuid().ToString(),
+                LockoutEnabled = false,
+                AccessFailedCount = 0
+            };
+
+            user.PasswordHash = _passwordHasher.HashPassword(user, request.Password);
+
+            user.Roles.Add(roleEntity);
+
+            _context.AspNetUsers.Add(user);
+            await _context.SaveChangesAsync();
+
+            var response = IssueTokenForUser(user);
+            return Created("api/auth/register", response);
+        }
+
+        private AuthResponse IssueTokenForUser(AspNetUser user)
+        {
+            var jwtKey = _configuration["Jwt:Key"];
+            var jwtIssuer = _configuration["Jwt:Issuer"];
+            var jwtAudience = _configuration["Jwt:Audience"];
+            var expiresInMinutes = int.TryParse(_configuration["Jwt:ExpiresInMinutes"], out var m) ? m : 120;
+
+            if (string.IsNullOrWhiteSpace(jwtKey))
+                throw new InvalidOperationException("Jwt:Key não está configurado.");
+
+            var roles = user.Roles
+                .Select(r => r.Name)
+                .Where(n => !string.IsNullOrWhiteSpace(n))
+                .ToList();
 
             var claims = new List<Claim>
             {
-                new Claim(JwtRegisteredClaimNames.Sub, user.Id),
-                new Claim(JwtRegisteredClaimNames.UniqueName, user.UserName ?? user.Email ?? user.Id),
-                new Claim(JwtRegisteredClaimNames.Email, user.Email ?? ""),
-                new Claim("uid", user.Id),
+                new(ClaimTypes.NameIdentifier, user.Id),
+                new(ClaimTypes.Name, user.UserName ?? ""),
+                new(JwtRegisteredClaimNames.Email, user.Email ?? ""),
+                new(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
             };
 
-            foreach (var r in roles)
-                claims.Add(new Claim(ClaimTypes.Role, r));
+            foreach (var role in roles)
+                claims.Add(new Claim(ClaimTypes.Role, role!));
 
-            var signingKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(key));
-            var creds = new SigningCredentials(signingKey, SecurityAlgorithms.HmacSha256);
+            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey))
+            {
+                KeyId = JwtKeyId
+            };
+
+            var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
 
             var token = new JwtSecurityToken(
-                issuer: issuer,
-                audience: audience,
+                issuer: jwtIssuer,
+                audience: jwtAudience,
                 claims: claims,
-                notBefore: now,
-                expires: expiresAt,
+                expires: DateTime.UtcNow.AddMinutes(expiresInMinutes),
                 signingCredentials: creds
             );
 
-            var jwt = new JwtSecurityTokenHandler().WriteToken(token);
+            var tokenString = new JwtSecurityTokenHandler().WriteToken(token);
 
-            return Ok(new
+            return new AuthResponse
             {
-                token = jwt,
-                expiresAtUtc = expiresAt,
-                user = new
-                {
-                    id = user.Id,
-                    username = user.UserName,
-                    email = user.Email,
-                    roles
-                }
-            });
+                Token = tokenString,
+                UserId = user.Id,
+                Username = user.UserName ?? "",
+                Email = user.Email ?? "",
+                Roles = roles!,
+                ExpiresInMinutes = expiresInMinutes
+            };
         }
 
-        private async Task<List<string>> GetUserRoles(string userId)
+        public class LoginRequest
         {
-            // Query direta ao join AspNetUserRoles -> AspNetRoles
-            // (evita ter de criar model AspNetUserRole)
-            var roles = await _db.AspNetRoles
-                .FromSqlRaw(@"
-                    SELECT r.*
-                    FROM AspNetRoles r
-                    INNER JOIN AspNetUserRoles ur ON ur.RoleId = r.Id
-                    WHERE ur.UserId = {0}
-                ", userId)
-                .AsNoTracking()
-                .Select(r => r.Name ?? "")
-                .Where(n => n != "")
-                .ToListAsync();
+            public string UsernameOrEmail { get; set; } = "";
+            public string Password { get; set; } = "";
+        }
 
-            return roles;
+        public class NfcLoginRequest
+        {
+            public string NfcIdentifier { get; set; } = "";
+        }
+
+        public class RegisterRequest
+        {
+            public string Username { get; set; } = "";
+            public string Email { get; set; } = "";
+            public string Password { get; set; } = "";
+            public string Role { get; set; } = "";
+        }
+
+        public class AuthResponse
+        {
+            public string Token { get; set; } = "";
+            public string UserId { get; set; } = "";
+            public string Username { get; set; } = "";
+            public string Email { get; set; } = "";
+            public List<string> Roles { get; set; } = new();
+            public int ExpiresInMinutes { get; set; }
         }
     }
 }
