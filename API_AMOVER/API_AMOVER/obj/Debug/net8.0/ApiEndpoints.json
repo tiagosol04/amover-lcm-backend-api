@@ -8,7 +8,7 @@
     "Order": 0,
     "Parameters": [
       {
-        "Name": "req",
+        "Name": "request",
         "Type": "API_AMOVER.Controllers.AuthController\u002BLoginRequest",
         "IsRequired": true
       }
@@ -24,8 +24,24 @@
     "Order": 0,
     "Parameters": [
       {
-        "Name": "req",
-        "Type": "API_AMOVER.Controllers.AuthController\u002BLoginNfcRequest",
+        "Name": "request",
+        "Type": "API_AMOVER.Controllers.AuthController\u002BNfcLoginRequest",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "API_AMOVER.Controllers.AuthController",
+    "Method": "Register",
+    "RelativePath": "api/auth/register",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "request",
+        "Type": "API_AMOVER.Controllers.AuthController\u002BRegisterRequest",
         "IsRequired": true
       }
     ],
@@ -279,7 +295,7 @@
     "ReturnTypes": []
   },
   {
-    "ContainingType": "API_Amover.Controllers.HealthController",
+    "ContainingType": "API_AMOVER.Controllers.HealthController",
     "Method": "Get",
     "RelativePath": "api/health",
     "HttpMethod": "GET",
@@ -289,9 +305,9 @@
     "ReturnTypes": []
   },
   {
-    "ContainingType": "API_Amover.Controllers.HealthController",
-    "Method": "Db",
-    "RelativePath": "api/health/db",
+    "ContainingType": "API_AMOVER.Controllers.MeController",
+    "Method": "Get",
+    "RelativePath": "api/me",
     "HttpMethod": "GET",
     "IsController": true,
     "Order": 0,

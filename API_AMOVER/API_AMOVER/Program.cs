@@ -1,69 +1,102 @@
-﻿using API_AMOVER.Data;
-using API_AMOVER.Data.Models;
+﻿using System.Text;
+using API_AMOVER.Data;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
-using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Controllers
 builder.Services.AddControllers();
 
-// DB
+// CORS (útil para Swagger/testes; em apps nativas normalmente não é necessário, mas não prejudica)
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowAll", policy =>
+        policy.AllowAnyOrigin()
+              .AllowAnyHeader()
+              .AllowAnyMethod());
+});
+
+// DbContext (com retry)
 builder.Services.AddDbContext<LcmContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("LCMDatabase")));
+{
+    var cs = builder.Configuration.GetConnectionString("LCMDatabase");
+    if (string.IsNullOrWhiteSpace(cs))
+        throw new InvalidOperationException("Connection string 'LCMDatabase' não encontrada.");
 
-// JWT (lê do appsettings.json)
-var jwtSection = builder.Configuration.GetSection("Jwt");
-var jwtKey = jwtSection.GetValue<string>("Key");
+    options.UseSqlServer(cs, sql =>
+    {
+        sql.EnableRetryOnFailure(
+            maxRetryCount: 5,
+            maxRetryDelay: TimeSpan.FromSeconds(5),
+            errorNumbersToAdd: null
+        );
+    });
+});
 
-if (string.IsNullOrWhiteSpace(jwtKey))
-    throw new InvalidOperationException("Falta configurar Jwt:Key no appsettings.json");
+// JWT Auth
+var jwtKey = builder.Configuration["Jwt:Key"];
+var jwtIssuer = builder.Configuration["Jwt:Issuer"];
+var jwtAudience = builder.Configuration["Jwt:Audience"];
+
+if (string.IsNullOrWhiteSpace(jwtKey) || string.IsNullOrWhiteSpace(jwtIssuer) || string.IsNullOrWhiteSpace(jwtAudience))
+    throw new InvalidOperationException("Configuração JWT em falta (Jwt:Key/Issuer/Audience).");
+
+var signingKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey));
 
 builder.Services
     .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
     {
+        // Para DEV e para emuladores/telemóvel (HTTP), isto evita problemas
+        options.RequireHttpsMetadata = false;
+
         options.TokenValidationParameters = new TokenValidationParameters
         {
             ValidateIssuer = true,
             ValidateAudience = true,
             ValidateLifetime = true,
             ValidateIssuerSigningKey = true,
-
-            ValidIssuer = jwtSection.GetValue<string>("Issuer"),
-            ValidAudience = jwtSection.GetValue<string>("Audience"),
-            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey)),
-
-            ClockSkew = TimeSpan.FromMinutes(2)
+            ValidIssuer = jwtIssuer,
+            ValidAudience = jwtAudience,
+            IssuerSigningKey = signingKey,
+            ClockSkew = TimeSpan.Zero
         };
     });
 
 builder.Services.AddAuthorization();
 
-// Swagger + botão Authorize (JWT)
+// Swagger + Bearer
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {
     c.SwaggerDoc("v1", new OpenApiInfo { Title = "API_AMOVER", Version = "v1" });
 
-    var securityScheme = new OpenApiSecurityScheme
+    c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
     {
         Name = "Authorization",
-        Description = "Insere: Bearer {token}",
-        In = ParameterLocation.Header,
         Type = SecuritySchemeType.Http,
         Scheme = "bearer",
-        BearerFormat = "JWT"
-    };
-
-    c.AddSecurityDefinition("Bearer", securityScheme);
+        BearerFormat = "JWT",
+        In = ParameterLocation.Header,
+        Description = "Cola aqui o token JWT (sem escrever 'Bearer ')"
+    });
 
     c.AddSecurityRequirement(new OpenApiSecurityRequirement
     {
-        { securityScheme, Array.Empty<string>() }
+        {
+            new OpenApiSecurityScheme
+            {
+                Reference = new OpenApiReference
+                {
+                    Type = ReferenceType.SecurityScheme,
+                    Id = "Bearer"
+                }
+            },
+            new string[] {}
+        }
     });
 });
 
@@ -75,7 +108,13 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
-app.UseHttpsRedirection();
+// IMPORTANTE: em DEV não forçamos HTTPS (para não lixar emulador/telemóvel)
+if (!app.Environment.IsDevelopment())
+{
+    app.UseHttpsRedirection();
+}
+
+app.UseCors("AllowAll");
 
 app.UseAuthentication();
 app.UseAuthorization();

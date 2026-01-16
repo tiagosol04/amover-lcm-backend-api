@@ -45,17 +45,48 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/LoginNfcRequest"
+                "$ref": "#/components/schemas/NfcLoginRequest"
               }
             },
             "text/json": {
               "schema": {
-                "$ref": "#/components/schemas/LoginNfcRequest"
+                "$ref": "#/components/schemas/NfcLoginRequest"
               }
             },
             "application/*+json": {
               "schema": {
-                "$ref": "#/components/schemas/LoginNfcRequest"
+                "$ref": "#/components/schemas/NfcLoginRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/auth/register": {
+      "post": {
+        "tags": [
+          "Auth"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RegisterRequest"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RegisterRequest"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/RegisterRequest"
               }
             }
           }
@@ -658,10 +689,10 @@
         }
       }
     },
-    "/api/health/db": {
+    "/api/me": {
       "get": {
         "tags": [
-          "Health"
+          "Me"
         ],
         "responses": {
           "200": {
@@ -2137,16 +2168,6 @@
         },
         "additionalProperties": false
       },
-      "LoginNfcRequest": {
-        "type": "object",
-        "properties": {
-          "nfcUid": {
-            "type": "string",
-            "nullable": true
-          }
-        },
-        "additionalProperties": false
-      },
       "LoginRequest": {
         "type": "object",
         "properties": {
@@ -2193,6 +2214,16 @@
         },
         "additionalProperties": false
       },
+      "NfcLoginRequest": {
+        "type": "object",
+        "properties": {
+          "nfcIdentifier": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
       "PecaCreateRequest": {
         "type": "object",
         "properties": {
@@ -2201,6 +2232,28 @@
             "nullable": true
           },
           "descricao": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "RegisterRequest": {
+        "type": "object",
+        "properties": {
+          "username": {
+            "type": "string",
+            "nullable": true
+          },
+          "email": {
+            "type": "string",
+            "nullable": true
+          },
+          "password": {
+            "type": "string",
+            "nullable": true
+          },
+          "role": {
             "type": "string",
             "nullable": true
           }
@@ -2294,13 +2347,15 @@
     "securitySchemes": {
       "Bearer": {
         "type": "http",
-        "description": "Insere: Bearer {token}",
+        "description": "Cola aqui o token JWT (sem escrever 'Bearer ')",
         "scheme": "bearer",
         "bearerFormat": "JWT"
       }
     }
   },
   "security": [
-    { }
+    {
+      "Bearer": [ ]
+    }
   ]
 }
