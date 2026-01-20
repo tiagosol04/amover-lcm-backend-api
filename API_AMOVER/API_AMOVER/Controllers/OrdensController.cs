@@ -52,7 +52,11 @@ namespace API_Amover.Controllers
                     o.PaisDestino,
                     o.DataCriacao,
                     o.DataConclusao,
-                    o.IDEncomenda
+                    o.IDEncomenda,
+
+                    // ✅ EXTRA: para a app móvel criar mota sem andar a fazer joins/client-side hacks
+                    idModelo = o.ModeloMotaIDModelo,
+                    idCliente = o.ClienteIDCliente
                 })
                 .ToListAsync();
 
@@ -74,7 +78,11 @@ namespace API_Amover.Controllers
                     o.PaisDestino,
                     o.DataCriacao,
                     o.DataConclusao,
-                    o.IDEncomenda
+                    o.IDEncomenda,
+
+                    // ✅ EXTRA: idem no detalhe
+                    idModelo = o.ModeloMotaIDModelo,
+                    idCliente = o.ClienteIDCliente
                 })
                 .FirstOrDefaultAsync();
 

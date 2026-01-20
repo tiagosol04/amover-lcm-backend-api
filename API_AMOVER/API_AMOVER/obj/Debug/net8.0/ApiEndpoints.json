@@ -2,7 +2,7 @@
   {
     "ContainingType": "API_AMOVER.Controllers.AuthController",
     "Method": "Login",
-    "RelativePath": "api/auth/login",
+    "RelativePath": "api/Auth/login",
     "HttpMethod": "POST",
     "IsController": true,
     "Order": 0,
@@ -13,39 +13,17 @@
         "IsRequired": true
       }
     ],
-    "ReturnTypes": []
-  },
-  {
-    "ContainingType": "API_AMOVER.Controllers.AuthController",
-    "Method": "LoginNfc",
-    "RelativePath": "api/auth/login-nfc",
-    "HttpMethod": "POST",
-    "IsController": true,
-    "Order": 0,
-    "Parameters": [
+    "ReturnTypes": [
       {
-        "Name": "request",
-        "Type": "API_AMOVER.Controllers.AuthController\u002BNfcLoginRequest",
-        "IsRequired": true
+        "Type": "API_AMOVER.Controllers.AuthController\u002BLoginResponse",
+        "MediaTypes": [
+          "text/plain",
+          "application/json",
+          "text/json"
+        ],
+        "StatusCode": 200
       }
-    ],
-    "ReturnTypes": []
-  },
-  {
-    "ContainingType": "API_AMOVER.Controllers.AuthController",
-    "Method": "Register",
-    "RelativePath": "api/auth/register",
-    "HttpMethod": "POST",
-    "IsController": true,
-    "Order": 0,
-    "Parameters": [
-      {
-        "Name": "request",
-        "Type": "API_AMOVER.Controllers.AuthController\u002BRegisterRequest",
-        "IsRequired": true
-      }
-    ],
-    "ReturnTypes": []
+    ]
   },
   {
     "ContainingType": "API_Amover.Controllers.ChecklistsController",
@@ -306,7 +284,7 @@
   },
   {
     "ContainingType": "API_AMOVER.Controllers.MeController",
-    "Method": "Get",
+    "Method": "GetMe",
     "RelativePath": "api/me",
     "HttpMethod": "GET",
     "IsController": true,
@@ -559,6 +537,32 @@
   },
   {
     "ContainingType": "API_Amover.Controllers.MotasController",
+    "Method": "GetAll",
+    "RelativePath": "api/motas",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "API_Amover.Controllers.MotasController",
+    "Method": "Create",
+    "RelativePath": "api/motas",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "req",
+        "Type": "API_Amover.Controllers.CreateMotaRequest",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "API_Amover.Controllers.MotasController",
     "Method": "Get",
     "RelativePath": "api/motas/{id}",
     "HttpMethod": "GET",
@@ -568,27 +572,6 @@
       {
         "Name": "id",
         "Type": "System.Int32",
-        "IsRequired": true
-      }
-    ],
-    "ReturnTypes": []
-  },
-  {
-    "ContainingType": "API_Amover.Controllers.MotasController",
-    "Method": "Update",
-    "RelativePath": "api/motas/{id}",
-    "HttpMethod": "PUT",
-    "IsController": true,
-    "Order": 0,
-    "Parameters": [
-      {
-        "Name": "id",
-        "Type": "System.Int32",
-        "IsRequired": true
-      },
-      {
-        "Name": "req",
-        "Type": "API_Amover.Controllers.UpdateMotaRequest",
         "IsRequired": true
       }
     ],
@@ -612,7 +595,7 @@
   },
   {
     "ContainingType": "API_Amover.Controllers.MotasController",
-    "Method": "AddPecaSn",
+    "Method": "AddOrUpdatePecaSn",
     "RelativePath": "api/motas/{id}/pecas-sn",
     "HttpMethod": "POST",
     "IsController": true,
@@ -625,7 +608,7 @@
       },
       {
         "Name": "req",
-        "Type": "API_Amover.Controllers.AddMotaPecaSnRequest",
+        "Type": "API_Amover.Controllers.AddPecaSnRequest",
         "IsRequired": true
       }
     ],
@@ -633,36 +616,15 @@
   },
   {
     "ContainingType": "API_Amover.Controllers.MotasController",
-    "Method": "GetServicos",
-    "RelativePath": "api/motas/{id}/servicos",
+    "Method": "GetByVin",
+    "RelativePath": "api/motas/by-vin/{vin}",
     "HttpMethod": "GET",
     "IsController": true,
     "Order": 0,
     "Parameters": [
       {
-        "Name": "id",
-        "Type": "System.Int32",
-        "IsRequired": true
-      }
-    ],
-    "ReturnTypes": []
-  },
-  {
-    "ContainingType": "API_Amover.Controllers.MotasController",
-    "Method": "CreateServico",
-    "RelativePath": "api/motas/{id}/servicos",
-    "HttpMethod": "POST",
-    "IsController": true,
-    "Order": 0,
-    "Parameters": [
-      {
-        "Name": "id",
-        "Type": "System.Int32",
-        "IsRequired": true
-      },
-      {
-        "Name": "req",
-        "Type": "API_Amover.Controllers.CriarServicoRequest",
+        "Name": "vin",
+        "Type": "System.String",
         "IsRequired": true
       }
     ],
@@ -671,13 +633,13 @@
   {
     "ContainingType": "API_Amover.Controllers.MotasController",
     "Method": "DeletePecaSn",
-    "RelativePath": "api/motas/pecas-sn/{idMotasPecasSn}",
+    "RelativePath": "api/motas/pecas-sn/{idMotaPecaSn}",
     "HttpMethod": "DELETE",
     "IsController": true,
     "Order": 0,
     "Parameters": [
       {
-        "Name": "idMotasPecasSn",
+        "Name": "idMotaPecaSn",
         "Type": "System.Int32",
         "IsRequired": true
       }

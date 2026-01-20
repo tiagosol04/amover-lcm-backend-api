@@ -5,7 +5,7 @@
     "version": "v1"
   },
   "paths": {
-    "/api/auth/login": {
+    "/api/Auth/login": {
       "post": {
         "tags": [
           "Auth"
@@ -31,69 +31,24 @@
         },
         "responses": {
           "200": {
-            "description": "OK"
-          }
-        }
-      }
-    },
-    "/api/auth/login-nfc": {
-      "post": {
-        "tags": [
-          "Auth"
-        ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/NfcLoginRequest"
-              }
-            },
-            "text/json": {
-              "schema": {
-                "$ref": "#/components/schemas/NfcLoginRequest"
-              }
-            },
-            "application/*+json": {
-              "schema": {
-                "$ref": "#/components/schemas/NfcLoginRequest"
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/LoginResponse"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LoginResponse"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LoginResponse"
+                }
               }
             }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "OK"
-          }
-        }
-      }
-    },
-    "/api/auth/register": {
-      "post": {
-        "tags": [
-          "Auth"
-        ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/RegisterRequest"
-              }
-            },
-            "text/json": {
-              "schema": {
-                "$ref": "#/components/schemas/RegisterRequest"
-              }
-            },
-            "application/*+json": {
-              "schema": {
-                "$ref": "#/components/schemas/RegisterRequest"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "OK"
           }
         }
       }
@@ -1100,6 +1055,47 @@
         }
       }
     },
+    "/api/motas": {
+      "get": {
+        "tags": [
+          "Motas"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Motas"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateMotaRequest"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateMotaRequest"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateMotaRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
     "/api/motas/{id}": {
       "get": {
         "tags": [
@@ -1121,41 +1117,23 @@
             "description": "OK"
           }
         }
-      },
-      "put": {
+      }
+    },
+    "/api/motas/by-vin/{vin}": {
+      "get": {
         "tags": [
           "Motas"
         ],
         "parameters": [
           {
-            "name": "id",
+            "name": "vin",
             "in": "path",
             "required": true,
             "schema": {
-              "type": "integer",
-              "format": "int32"
+              "type": "string"
             }
           }
         ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/UpdateMotaRequest"
-              }
-            },
-            "text/json": {
-              "schema": {
-                "$ref": "#/components/schemas/UpdateMotaRequest"
-              }
-            },
-            "application/*+json": {
-              "schema": {
-                "$ref": "#/components/schemas/UpdateMotaRequest"
-              }
-            }
-          }
-        },
         "responses": {
           "200": {
             "description": "OK"
@@ -1204,17 +1182,17 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/AddMotaPecaSnRequest"
+                "$ref": "#/components/schemas/AddPecaSnRequest"
               }
             },
             "text/json": {
               "schema": {
-                "$ref": "#/components/schemas/AddMotaPecaSnRequest"
+                "$ref": "#/components/schemas/AddPecaSnRequest"
               }
             },
             "application/*+json": {
               "schema": {
-                "$ref": "#/components/schemas/AddMotaPecaSnRequest"
+                "$ref": "#/components/schemas/AddPecaSnRequest"
               }
             }
           }
@@ -1226,14 +1204,14 @@
         }
       }
     },
-    "/api/motas/pecas-sn/{idMotasPecasSn}": {
+    "/api/motas/pecas-sn/{idMotaPecaSn}": {
       "delete": {
         "tags": [
           "Motas"
         ],
         "parameters": [
           {
-            "name": "idMotasPecasSn",
+            "name": "idMotaPecaSn",
             "in": "path",
             "required": true,
             "schema": {
@@ -1242,69 +1220,6 @@
             }
           }
         ],
-        "responses": {
-          "200": {
-            "description": "OK"
-          }
-        }
-      }
-    },
-    "/api/motas/{id}/servicos": {
-      "get": {
-        "tags": [
-          "Motas"
-        ],
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "integer",
-              "format": "int32"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK"
-          }
-        }
-      },
-      "post": {
-        "tags": [
-          "Motas"
-        ],
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "integer",
-              "format": "int32"
-            }
-          }
-        ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/CriarServicoRequest"
-              }
-            },
-            "text/json": {
-              "schema": {
-                "$ref": "#/components/schemas/CriarServicoRequest"
-              }
-            },
-            "application/*+json": {
-              "schema": {
-                "$ref": "#/components/schemas/CriarServicoRequest"
-              }
-            }
-          }
-        },
         "responses": {
           "200": {
             "description": "OK"
@@ -1939,20 +1854,6 @@
         },
         "additionalProperties": false
       },
-      "AddMotaPecaSnRequest": {
-        "type": "object",
-        "properties": {
-          "idPeca": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "numeroSerie": {
-            "type": "string",
-            "nullable": true
-          }
-        },
-        "additionalProperties": false
-      },
       "AddPecaAlteradaRequest": {
         "type": "object",
         "properties": {
@@ -1975,6 +1876,20 @@
             "format": "int32"
           },
           "especificacaoPadrao": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "AddPecaSnRequest": {
+        "type": "object",
+        "properties": {
+          "idPeca": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "numeroSerie": {
             "type": "string",
             "nullable": true
           }
@@ -2041,6 +1956,36 @@
         },
         "additionalProperties": false
       },
+      "CreateMotaRequest": {
+        "type": "object",
+        "properties": {
+          "idModelo": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "cor": {
+            "type": "string",
+            "nullable": true
+          },
+          "quilometragem": {
+            "type": "number",
+            "format": "double"
+          },
+          "estado": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "idOrdemProducao": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "numeroIdentificacao": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
       "CriarMotaRequest": {
         "type": "object",
         "properties": {
@@ -2081,28 +2026,6 @@
           "estado": {
             "type": "integer",
             "format": "int32"
-          }
-        },
-        "additionalProperties": false
-      },
-      "CriarServicoRequest": {
-        "type": "object",
-        "properties": {
-          "tipo": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "descricao": {
-            "type": "string",
-            "nullable": true
-          },
-          "estado": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "notasServico": {
-            "type": "string",
-            "nullable": true
           }
         },
         "additionalProperties": false
@@ -2182,6 +2105,39 @@
         },
         "additionalProperties": false
       },
+      "LoginResponse": {
+        "type": "object",
+        "properties": {
+          "token": {
+            "type": "string",
+            "nullable": true
+          },
+          "userId": {
+            "type": "string",
+            "nullable": true
+          },
+          "username": {
+            "type": "string",
+            "nullable": true
+          },
+          "email": {
+            "type": "string",
+            "nullable": true
+          },
+          "roles": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "nullable": true
+          },
+          "expiresInMinutes": {
+            "type": "integer",
+            "format": "int32"
+          }
+        },
+        "additionalProperties": false
+      },
       "ModeloCreateRequest": {
         "type": "object",
         "properties": {
@@ -2214,16 +2170,6 @@
         },
         "additionalProperties": false
       },
-      "NfcLoginRequest": {
-        "type": "object",
-        "properties": {
-          "nfcIdentifier": {
-            "type": "string",
-            "nullable": true
-          }
-        },
-        "additionalProperties": false
-      },
       "PecaCreateRequest": {
         "type": "object",
         "properties": {
@@ -2232,28 +2178,6 @@
             "nullable": true
           },
           "descricao": {
-            "type": "string",
-            "nullable": true
-          }
-        },
-        "additionalProperties": false
-      },
-      "RegisterRequest": {
-        "type": "object",
-        "properties": {
-          "username": {
-            "type": "string",
-            "nullable": true
-          },
-          "email": {
-            "type": "string",
-            "nullable": true
-          },
-          "password": {
-            "type": "string",
-            "nullable": true
-          },
-          "role": {
             "type": "string",
             "nullable": true
           }
@@ -2276,28 +2200,6 @@
           "value": {
             "type": "integer",
             "format": "int32"
-          }
-        },
-        "additionalProperties": false
-      },
-      "UpdateMotaRequest": {
-        "type": "object",
-        "properties": {
-          "cor": {
-            "type": "string",
-            "nullable": true
-          },
-          "quilometragem": {
-            "type": "number",
-            "format": "double"
-          },
-          "estado": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "numeroIdentificacao": {
-            "type": "string",
-            "nullable": true
           }
         },
         "additionalProperties": false
@@ -2347,7 +2249,7 @@
     "securitySchemes": {
       "Bearer": {
         "type": "http",
-        "description": "Cola aqui o token JWT (sem escrever 'Bearer ')",
+        "description": "Insere: Bearer {token}",
         "scheme": "bearer",
         "bearerFormat": "JWT"
       }

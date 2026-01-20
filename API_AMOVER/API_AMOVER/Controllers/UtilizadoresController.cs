@@ -25,6 +25,12 @@ namespace API_Amover.Controllers
         public string? MotivoInativacao { get; set; }
     }
 
+    // ✅ NOVO DTO: Necessário para receber o pedido da App Android
+    public class UpdateUserStatusRequest
+    {
+        public bool Ativo { get; set; }
+    }
+
     [ApiController]
     [Route("api/utilizadores")]
     public class UtilizadoresController : ControllerBase
@@ -73,6 +79,22 @@ namespace API_Amover.Controllers
             await _db.SaveChangesAsync();
 
             return Ok(new { u.IdUtilizador });
+        }
+
+        // ✅ NOVO ENDPOINT: Permite à App Android guardar o estado (Bloquear/Reativar)
+        [HttpPut("{id:int}/status")]
+        public async Task<IActionResult> UpdateStatus(int id, [FromBody] UpdateUserStatusRequest req)
+        {
+            var user = await _db.Set<Utilizadore>().FirstOrDefaultAsync(u => u.IdUtilizador == id);
+
+            if (user == null)
+                return NotFound(new { message = "Utilizador não encontrado" });
+
+            // Mapeamento: true -> 1 (Ativo), false -> 0 (Inativo/Bloqueado)
+            user.Estado = req.Ativo ? 1 : 0;
+
+            await _db.SaveChangesAsync();
+            return Ok(new { message = "Estado atualizado com sucesso", id = user.IdUtilizador, estado = user.Estado });
         }
 
         // GET /api/utilizadores/{id}/motas

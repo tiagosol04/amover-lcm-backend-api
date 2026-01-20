@@ -13,7 +13,8 @@ public partial class DocumentosModelo
 
     public string Caminho { get; set; } = null!;
 
-    public virtual ModelosMotum IDModelo1 { get; set; } = null!;
+    // Navegações corretas
+    public virtual ModelosMotum Modelo { get; set; } = null!;
 
-    public virtual Documento IDModeloNavigation { get; set; } = null!;
+    public virtual Documento Documento { get; set; } = null!;
 }
