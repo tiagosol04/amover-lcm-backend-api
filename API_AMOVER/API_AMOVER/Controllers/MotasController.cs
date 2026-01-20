@@ -5,26 +5,20 @@ using Microsoft.EntityFrameworkCore;
 
 namespace API_Amover.Controllers
 {
-    public class UpdateMotaRequest
+    public class CreateMotaRequest
     {
-        public string Cor { get; set; } = "N/A";
+        public int IDModelo { get; set; }
+        public string Cor { get; set; } = "";
         public double Quilometragem { get; set; }
-        public int Estado { get; set; }
-        public string NumeroIdentificacao { get; set; } = "";
+        public int Estado { get; set; } = 1;
+        public int IDOrdemProducao { get; set; }
+        public string NumeroIdentificacao { get; set; } = ""; // VIN
     }
 
-    public class AddMotaPecaSnRequest
+    public class AddPecaSnRequest
     {
         public int IDPeca { get; set; }
-        public string NumeroSerie { get; set; } = string.Empty;
-    }
-
-    public class CriarServicoRequest
-    {
-        public int Tipo { get; set; }
-        public string? Descricao { get; set; }
-        public int Estado { get; set; }
-        public string? NotasServico { get; set; }
+        public string NumeroSerie { get; set; } = "";
     }
 
     [ApiController]
@@ -33,6 +27,28 @@ namespace API_Amover.Controllers
     {
         private readonly LcmContext _db;
         public MotasController(LcmContext db) => _db = db;
+
+        [HttpGet]
+        public async Task<IActionResult> GetAll()
+        {
+            var list = await _db.Set<Mota>()
+                .AsNoTracking()
+                .OrderByDescending(m => m.DataRegisto)
+                .Select(m => new
+                {
+                    m.IDMota,
+                    m.IDModelo,
+                    m.IDOrdemProducao,
+                    m.NumeroIdentificacao,
+                    m.Cor,
+                    m.Quilometragem,
+                    m.Estado,
+                    m.DataRegisto
+                })
+                .ToListAsync();
+
+            return Ok(list);
+        }
 
         [HttpGet("{id:int}")]
         public async Task<IActionResult> Get(int id)
@@ -56,50 +72,91 @@ namespace API_Amover.Controllers
             return m == null ? NotFound() : Ok(m);
         }
 
-        [HttpPut("{id:int}")]
-        public async Task<IActionResult> Update(int id, [FromBody] UpdateMotaRequest req)
+        // NOVO: procurar por VIN / Nº Identificação
+        [HttpGet("by-vin/{vin}")]
+        public async Task<IActionResult> GetByVin(string vin)
         {
-            var m = await _db.Set<Mota>().FirstOrDefaultAsync(x => x.IDMota == id);
-            if (m == null) return NotFound();
+            if (string.IsNullOrWhiteSpace(vin))
+                return BadRequest(new { message = "VIN é obrigatório." });
 
-            m.Cor = (req.Cor ?? "N/A").Trim();
-            m.Quilometragem = req.Quilometragem;
-            m.Estado = req.Estado;
-            m.NumeroIdentificacao = (req.NumeroIdentificacao ?? "").Trim();
+            var v = vin.Trim();
 
-            await _db.SaveChangesAsync();
-            return NoContent();
+            var m = await _db.Set<Mota>()
+                .AsNoTracking()
+                .Where(x => x.NumeroIdentificacao == v)
+                .Select(x => new
+                {
+                    x.IDMota,
+                    x.IDModelo,
+                    x.IDOrdemProducao,
+                    x.NumeroIdentificacao,
+                    x.Cor,
+                    x.Quilometragem,
+                    x.Estado,
+                    x.DataRegisto
+                })
+                .FirstOrDefaultAsync();
+
+            return m == null ? NotFound() : Ok(m);
         }
 
-        // ----------- PEÇAS SN NA MOTA -----------
+        [HttpPost]
+        public async Task<IActionResult> Create([FromBody] CreateMotaRequest req)
+        {
+            if (req.IDModelo <= 0 || req.IDOrdemProducao <= 0 ||
+                string.IsNullOrWhiteSpace(req.NumeroIdentificacao) || string.IsNullOrWhiteSpace(req.Cor))
+                return BadRequest(new { message = "Campos obrigatórios em falta." });
+
+            // 1:1 com Ordem - evita crash por unique index
+            var existsForOrder = await _db.Set<Mota>().AnyAsync(m => m.IDOrdemProducao == req.IDOrdemProducao);
+            if (existsForOrder)
+                return Conflict(new { message = "Já existe uma mota associada a esta Ordem de Produção." });
+
+            var m = new Mota
+            {
+                IDModelo = req.IDModelo,
+                IDOrdemProducao = req.IDOrdemProducao,
+                NumeroIdentificacao = req.NumeroIdentificacao.Trim(),
+                Cor = req.Cor.Trim(),
+                Quilometragem = req.Quilometragem,
+                Estado = req.Estado,
+                DataRegisto = DateTime.UtcNow
+            };
+
+            _db.Set<Mota>().Add(m);
+            await _db.SaveChangesAsync();
+
+            return Ok(new { m.IDMota });
+        }
+
         // GET /api/motas/{id}/pecas-sn
         [HttpGet("{id:int}/pecas-sn")]
         public async Task<IActionResult> GetPecasSn(int id)
         {
-            var lista = await _db.Set<MotasPecasSN>()
+            var list = await _db.Set<MotasPecasSN>()
                 .AsNoTracking()
                 .Where(x => x.IDMota == id)
                 .Join(_db.Set<Peca>().AsNoTracking(),
-                      sn => sn.IDPeca,
+                      x => x.IDPeca,
                       p => p.IDPeca,
-                      (sn, p) => new
+                      (x, p) => new
                       {
-                          sn.IDMotasPecasSN,
-                          sn.IDMota,
-                          sn.IDPeca,
+                          x.IDMotasPecasSN,
+                          x.IDMota,
+                          x.IDPeca,
                           p.PartNumber,
                           p.Descricao,
-                          sn.NumeroSerie
+                          x.NumeroSerie
                       })
                 .OrderBy(x => x.PartNumber)
                 .ToListAsync();
 
-            return Ok(lista);
+            return Ok(list);
         }
 
-        // POST /api/motas/{id}/pecas-sn
+        // POST /api/motas/{id}/pecas-sn (Upsert)
         [HttpPost("{id:int}/pecas-sn")]
-        public async Task<IActionResult> AddPecaSn(int id, [FromBody] AddMotaPecaSnRequest req)
+        public async Task<IActionResult> AddOrUpdatePecaSn(int id, [FromBody] AddPecaSnRequest req)
         {
             if (req.IDPeca <= 0 || string.IsNullOrWhiteSpace(req.NumeroSerie))
                 return BadRequest(new { message = "IDPeca e NumeroSerie são obrigatórios." });
@@ -107,76 +164,38 @@ namespace API_Amover.Controllers
             var motaExists = await _db.Set<Mota>().AnyAsync(m => m.IDMota == id);
             if (!motaExists) return NotFound(new { message = "Mota não encontrada." });
 
-            var sn = new MotasPecasSN
+            var row = await _db.Set<MotasPecasSN>()
+                .FirstOrDefaultAsync(x => x.IDMota == id && x.IDPeca == req.IDPeca);
+
+            if (row == null)
             {
-                IDMota = id,
-                IDPeca = req.IDPeca,
-                NumeroSerie = req.NumeroSerie.Trim()
-            };
+                row = new MotasPecasSN
+                {
+                    IDMota = id,
+                    IDPeca = req.IDPeca,
+                    NumeroSerie = req.NumeroSerie.Trim()
+                };
 
-            _db.Set<MotasPecasSN>().Add(sn);
+                _db.Set<MotasPecasSN>().Add(row);
+                await _db.SaveChangesAsync();
+                return Ok(new { row.IDMotasPecasSN, created = true });
+            }
+
+            row.NumeroSerie = req.NumeroSerie.Trim();
             await _db.SaveChangesAsync();
-
-            return Ok(new { sn.IDMotasPecasSN });
+            return Ok(new { row.IDMotasPecasSN, created = false });
         }
 
-        [HttpDelete("pecas-sn/{idMotasPecasSn:int}")]
-        public async Task<IActionResult> DeletePecaSn(int idMotasPecasSn)
+        // DELETE /api/motas/pecas-sn/{idMotaPecaSn}
+        [HttpDelete("pecas-sn/{idMotaPecaSn:int}")]
+        public async Task<IActionResult> DeletePecaSn(int idMotaPecaSn)
         {
-            var sn = await _db.Set<MotasPecasSN>().FirstOrDefaultAsync(x => x.IDMotasPecasSN == idMotasPecasSn);
-            if (sn == null) return NotFound();
+            var row = await _db.Set<MotasPecasSN>().FirstOrDefaultAsync(x => x.IDMotasPecasSN == idMotaPecaSn);
+            if (row == null) return NotFound();
 
-            _db.Set<MotasPecasSN>().Remove(sn);
+            _db.Set<MotasPecasSN>().Remove(row);
             await _db.SaveChangesAsync();
             return NoContent();
-        }
-
-        // ----------- SERVIÇOS NA MOTA -----------
-        // GET /api/motas/{id}/servicos
-        [HttpGet("{id:int}/servicos")]
-        public async Task<IActionResult> GetServicos(int id)
-        {
-            var lista = await _db.Set<Servico>()
-                .AsNoTracking()
-                .Where(s => s.IDMota == id)
-                .OrderByDescending(s => s.DataServico)
-                .Select(s => new
-                {
-                    s.IDServico,
-                    s.IDMota,
-                    s.Tipo,
-                    s.Descricao,
-                    s.Estado,
-                    s.DataServico,
-                    s.DataConclusao,
-                    s.NotasServico
-                })
-                .ToListAsync();
-
-            return Ok(lista);
-        }
-
-        // POST /api/motas/{id}/servicos
-        [HttpPost("{id:int}/servicos")]
-        public async Task<IActionResult> CreateServico(int id, [FromBody] CriarServicoRequest req)
-        {
-            var motaExists = await _db.Set<Mota>().AnyAsync(m => m.IDMota == id);
-            if (!motaExists) return NotFound(new { message = "Mota não encontrada." });
-
-            var s = new Servico
-            {
-                IDMota = id,
-                Tipo = req.Tipo,
-                Descricao = req.Descricao,
-                Estado = req.Estado,
-                NotasServico = req.NotasServico,
-                DataServico = DateTime.UtcNow
-            };
-
-            _db.Set<Servico>().Add(s);
-            await _db.SaveChangesAsync();
-
-            return Ok(new { s.IDServico });
         }
     }
 }

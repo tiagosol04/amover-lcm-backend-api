@@ -3,6 +3,7 @@ using System.Security.Claims;
 using System.Text;
 using API_AMOVER.Data;
 using API_AMOVER.Data.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -40,32 +41,42 @@ namespace API_AMOVER.Controllers
             public int ExpiresInMinutes { get; set; }
         }
 
+        // ✅ IMPORTANTE: como tens FallbackPolicy no Program.cs, este endpoint tem de ser público
+        [AllowAnonymous]
         [HttpPost("login")]
         public async Task<ActionResult<LoginResponse>> Login([FromBody] LoginRequest request)
         {
             if (string.IsNullOrWhiteSpace(request.UsernameOrEmail) || string.IsNullOrWhiteSpace(request.Password))
                 return BadRequest("UsernameOrEmail e Password são obrigatórios.");
 
-            // ✅ Buscar utilizador + Roles SEM usar AspNetUserRoles (não existe no teu DbContext)
+            var input = request.UsernameOrEmail.Trim();
+            var inputUpper = input.ToUpperInvariant();
+
             var user = await _db.AspNetUsers
                 .Include(u => u.Roles)
                 .FirstOrDefaultAsync(u =>
-                    u.UserName == request.UsernameOrEmail ||
-                    u.Email == request.UsernameOrEmail ||
-                    u.NormalizedUserName == request.UsernameOrEmail.ToUpper() ||
-                    u.NormalizedEmail == request.UsernameOrEmail.ToUpper()
+                    u.UserName == input ||
+                    u.Email == input ||
+                    u.NormalizedUserName == inputUpper ||
+                    u.NormalizedEmail == inputUpper
                 );
 
             if (user == null)
                 return Unauthorized("Credenciais inválidas.");
 
-            // Verificar password (Identity hash)
             var result = _hasher.VerifyHashedPassword(user, user.PasswordHash ?? "", request.Password);
             if (result == PasswordVerificationResult.Failed)
                 return Unauthorized("Credenciais inválidas.");
 
-            var roles = user.Roles.Select(r => r.Name ?? "").Where(r => !string.IsNullOrWhiteSpace(r)).Distinct().ToList();
-            var expiresMinutes = int.TryParse(_config["Jwt:ExpiresInMinutes"], out var m) ? m : 120;
+            var roles = user.Roles
+                .Select(r => r.Name ?? "")
+                .Where(r => !string.IsNullOrWhiteSpace(r))
+                .Distinct()
+                .ToList();
+
+            // ✅ Aceita Jwt:ExpiresInMinutes (novo) e Jwt:ExpiresMinutes (antigo)
+            var expiresRaw = _config["Jwt:ExpiresInMinutes"] ?? _config["Jwt:ExpiresMinutes"];
+            var expiresMinutes = int.TryParse(expiresRaw, out var m) ? m : 120;
 
             var token = GenerateJwt(user, roles, expiresMinutes);
 
@@ -89,7 +100,6 @@ namespace API_AMOVER.Controllers
             if (string.IsNullOrWhiteSpace(key))
                 throw new Exception("Jwt:Key não está configurada no appsettings.json");
 
-            // ✅ Nada de BinaryReader aqui
             var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(key));
             var credentials = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256);
 

@@ -219,10 +219,19 @@ public partial class LcmContext : DbContext
             entity.ToTable("DocumentosModelo");
 
             entity.HasIndex(e => e.IDModelo, "IX_DocumentosModelo_IDModelo");
+            entity.HasIndex(e => e.IDDocumento, "IX_DocumentosModelo_IDDocumento");
 
-            entity.HasOne(d => d.IDModeloNavigation).WithMany(p => p.DocumentosModelos).HasForeignKey(d => d.IDModelo);
+            // Relação correta: DocumentosModelo -> Modelo (IDModelo)
+            entity.HasOne(d => d.Modelo)
+                .WithMany(p => p.DocumentosModelos)
+                .HasForeignKey(d => d.IDModelo)
+                .OnDelete(DeleteBehavior.ClientSetNull);
 
-            entity.HasOne(d => d.IDModelo1).WithMany(p => p.DocumentosModelos).HasForeignKey(d => d.IDModelo);
+            // Relação correta: DocumentosModelo -> Documento (IDDocumento)
+            entity.HasOne(d => d.Documento)
+                .WithMany(p => p.DocumentosModelos)
+                .HasForeignKey(d => d.IDDocumento)
+                .OnDelete(DeleteBehavior.ClientSetNull);
         });
 
         modelBuilder.Entity<Encomenda>(entity =>
