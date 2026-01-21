@@ -2,6 +2,7 @@
 using API_AMOVER.Data.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using System.Text.Json.Serialization;
 
 namespace API_Amover.Controllers
 {
@@ -25,10 +26,9 @@ namespace API_Amover.Controllers
         public string? MotivoInativacao { get; set; }
     }
 
-    // ✅ NOVO DTO: Necessário para receber o pedido da App Android
     public class UpdateUserStatusRequest
     {
-        public bool Ativo { get; set; }
+        public bool Ativo { get; set; } // O Android agora vai enviar "Ativo" a bater certo com isto
     }
 
     [ApiController]

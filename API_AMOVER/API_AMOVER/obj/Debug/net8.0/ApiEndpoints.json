@@ -1085,6 +1085,27 @@
   },
   {
     "ContainingType": "API_Amover.Controllers.UtilizadoresController",
+    "Method": "UpdateStatus",
+    "RelativePath": "api/utilizadores/{id}/status",
+    "HttpMethod": "PUT",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "id",
+        "Type": "System.Int32",
+        "IsRequired": true
+      },
+      {
+        "Name": "req",
+        "Type": "API_Amover.Controllers.UpdateUserStatusRequest",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "API_Amover.Controllers.UtilizadoresController",
     "Method": "InativarAssoc",
     "RelativePath": "api/utilizadores/motas/{idUtilizadorMota}/inativar",
     "HttpMethod": "PUT",
