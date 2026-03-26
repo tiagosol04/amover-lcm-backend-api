@@ -26,9 +26,9 @@
     ]
   },
   {
-    "ContainingType": "API_Amover.Controllers.ChecklistsController",
-    "Method": "GetAll",
-    "RelativePath": "api/checklists",
+    "ContainingType": "API_AMOVER.Controllers.AuthController",
+    "Method": "Me",
+    "RelativePath": "api/Auth/me",
     "HttpMethod": "GET",
     "IsController": true,
     "Order": 0,
@@ -36,7 +36,23 @@
     "ReturnTypes": []
   },
   {
-    "ContainingType": "API_Amover.Controllers.ChecklistsController",
+    "ContainingType": "API_AMOVER.Controllers.ChecklistsController",
+    "Method": "GetAll",
+    "RelativePath": "api/checklists",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "tipo",
+        "Type": "System.Nullable\u00601[[System.Int32, System.Private.CoreLib, Version=8.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]]",
+        "IsRequired": false
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "API_AMOVER.Controllers.ChecklistsController",
     "Method": "Create",
     "RelativePath": "api/checklists",
     "HttpMethod": "POST",
@@ -45,14 +61,14 @@
     "Parameters": [
       {
         "Name": "req",
-        "Type": "API_Amover.Controllers.ChecklistCreateRequest",
+        "Type": "API_AMOVER.Controllers.ChecklistCreateRequest",
         "IsRequired": true
       }
     ],
     "ReturnTypes": []
   },
   {
-    "ContainingType": "API_Amover.Controllers.ClientesController",
+    "ContainingType": "API_AMOVER.Controllers.ClientesController",
     "Method": "GetAll",
     "RelativePath": "api/clientes",
     "HttpMethod": "GET",
@@ -62,7 +78,7 @@
     "ReturnTypes": []
   },
   {
-    "ContainingType": "API_Amover.Controllers.ClientesController",
+    "ContainingType": "API_AMOVER.Controllers.ClientesController",
     "Method": "Create",
     "RelativePath": "api/clientes",
     "HttpMethod": "POST",
@@ -71,14 +87,14 @@
     "Parameters": [
       {
         "Name": "req",
-        "Type": "API_Amover.Controllers.ClienteCreateRequest",
+        "Type": "API_AMOVER.Controllers.ClienteCreateRequest",
         "IsRequired": true
       }
     ],
     "ReturnTypes": []
   },
   {
-    "ContainingType": "API_Amover.Controllers.ClientesController",
+    "ContainingType": "API_AMOVER.Controllers.ClientesController",
     "Method": "Get",
     "RelativePath": "api/clientes/{id}",
     "HttpMethod": "GET",
@@ -94,7 +110,7 @@
     "ReturnTypes": []
   },
   {
-    "ContainingType": "API_Amover.Controllers.ClientesController",
+    "ContainingType": "API_AMOVER.Controllers.ClientesController",
     "Method": "Update",
     "RelativePath": "api/clientes/{id}",
     "HttpMethod": "PUT",
@@ -108,14 +124,14 @@
       },
       {
         "Name": "req",
-        "Type": "API_Amover.Controllers.ClienteUpdateRequest",
+        "Type": "API_AMOVER.Controllers.ClienteUpdateRequest",
         "IsRequired": true
       }
     ],
     "ReturnTypes": []
   },
   {
-    "ContainingType": "API_Amover.Controllers.DocumentosController",
+    "ContainingType": "API_AMOVER.Controllers.DocumentosController",
     "Method": "GetAll",
     "RelativePath": "api/documentos",
     "HttpMethod": "GET",
@@ -125,7 +141,7 @@
     "ReturnTypes": []
   },
   {
-    "ContainingType": "API_Amover.Controllers.DocumentosController",
+    "ContainingType": "API_AMOVER.Controllers.DocumentosController",
     "Method": "Create",
     "RelativePath": "api/documentos",
     "HttpMethod": "POST",
@@ -134,14 +150,14 @@
     "Parameters": [
       {
         "Name": "req",
-        "Type": "API_Amover.Controllers.DocumentoCreateRequest",
+        "Type": "API_AMOVER.Controllers.DocumentoCreateRequest",
         "IsRequired": true
       }
     ],
     "ReturnTypes": []
   },
   {
-    "ContainingType": "API_Amover.Controllers.DocumentosController",
+    "ContainingType": "API_AMOVER.Controllers.DocumentosController",
     "Method": "GetByModelo",
     "RelativePath": "api/documentos/modelo/{idModelo}",
     "HttpMethod": "GET",
@@ -157,7 +173,7 @@
     "ReturnTypes": []
   },
   {
-    "ContainingType": "API_Amover.Controllers.DocumentosController",
+    "ContainingType": "API_AMOVER.Controllers.DocumentosController",
     "Method": "AddToModelo",
     "RelativePath": "api/documentos/modelo/{idModelo}",
     "HttpMethod": "POST",
@@ -171,14 +187,14 @@
       },
       {
         "Name": "req",
-        "Type": "API_Amover.Controllers.DocumentoModeloCreateRequest",
+        "Type": "API_AMOVER.Controllers.DocumentoModeloCreateRequest",
         "IsRequired": true
       }
     ],
     "ReturnTypes": []
   },
   {
-    "ContainingType": "API_Amover.Controllers.DocumentosController",
+    "ContainingType": "API_AMOVER.Controllers.DocumentosController",
     "Method": "RemoveFromModelo",
     "RelativePath": "api/documentos/modelo/{idModelo}/{idAssoc}",
     "HttpMethod": "DELETE",
@@ -199,7 +215,7 @@
     "ReturnTypes": []
   },
   {
-    "ContainingType": "API_Amover.Controllers.EncomendasController",
+    "ContainingType": "API_AMOVER.Controllers.EncomendasController",
     "Method": "GetAll",
     "RelativePath": "api/encomendas",
     "HttpMethod": "GET",
@@ -220,7 +236,7 @@
     "ReturnTypes": []
   },
   {
-    "ContainingType": "API_Amover.Controllers.EncomendasController",
+    "ContainingType": "API_AMOVER.Controllers.EncomendasController",
     "Method": "Create",
     "RelativePath": "api/encomendas",
     "HttpMethod": "POST",
@@ -229,14 +245,14 @@
     "Parameters": [
       {
         "Name": "req",
-        "Type": "API_Amover.Controllers.EncomendaCreateRequest",
+        "Type": "API_AMOVER.Controllers.EncomendaCreateRequest",
         "IsRequired": true
       }
     ],
     "ReturnTypes": []
   },
   {
-    "ContainingType": "API_Amover.Controllers.EncomendasController",
+    "ContainingType": "API_AMOVER.Controllers.EncomendasController",
     "Method": "Get",
     "RelativePath": "api/encomendas/{id}",
     "HttpMethod": "GET",
@@ -252,7 +268,7 @@
     "ReturnTypes": []
   },
   {
-    "ContainingType": "API_Amover.Controllers.EncomendasController",
+    "ContainingType": "API_AMOVER.Controllers.EncomendasController",
     "Method": "Update",
     "RelativePath": "api/encomendas/{id}",
     "HttpMethod": "PUT",
@@ -266,7 +282,7 @@
       },
       {
         "Name": "req",
-        "Type": "API_Amover.Controllers.EncomendaCreateRequest",
+        "Type": "API_AMOVER.Controllers.EncomendaCreateRequest",
         "IsRequired": true
       }
     ],
@@ -283,17 +299,7 @@
     "ReturnTypes": []
   },
   {
-    "ContainingType": "API_AMOVER.Controllers.MeController",
-    "Method": "GetMe",
-    "RelativePath": "api/me",
-    "HttpMethod": "GET",
-    "IsController": true,
-    "Order": 0,
-    "Parameters": [],
-    "ReturnTypes": []
-  },
-  {
-    "ContainingType": "API_Amover.Controllers.ModelosController",
+    "ContainingType": "API_AMOVER.Controllers.ModelosController",
     "Method": "GetAll",
     "RelativePath": "api/modelos",
     "HttpMethod": "GET",
@@ -309,7 +315,7 @@
     "ReturnTypes": []
   },
   {
-    "ContainingType": "API_Amover.Controllers.ModelosController",
+    "ContainingType": "API_AMOVER.Controllers.ModelosController",
     "Method": "Create",
     "RelativePath": "api/modelos",
     "HttpMethod": "POST",
@@ -318,14 +324,14 @@
     "Parameters": [
       {
         "Name": "req",
-        "Type": "API_Amover.Controllers.ModeloCreateRequest",
+        "Type": "API_AMOVER.Controllers.ModeloCreateRequest",
         "IsRequired": true
       }
     ],
     "ReturnTypes": []
   },
   {
-    "ContainingType": "API_Amover.Controllers.ModelosController",
+    "ContainingType": "API_AMOVER.Controllers.ModelosController",
     "Method": "Get",
     "RelativePath": "api/modelos/{id}",
     "HttpMethod": "GET",
@@ -341,7 +347,7 @@
     "ReturnTypes": []
   },
   {
-    "ContainingType": "API_Amover.Controllers.ModelosController",
+    "ContainingType": "API_AMOVER.Controllers.ModelosController",
     "Method": "Update",
     "RelativePath": "api/modelos/{id}",
     "HttpMethod": "PUT",
@@ -355,14 +361,14 @@
       },
       {
         "Name": "req",
-        "Type": "API_Amover.Controllers.ModeloCreateRequest",
+        "Type": "API_AMOVER.Controllers.ModeloCreateRequest",
         "IsRequired": true
       }
     ],
     "ReturnTypes": []
   },
   {
-    "ContainingType": "API_Amover.Controllers.ModelosController",
+    "ContainingType": "API_AMOVER.Controllers.ModelosController",
     "Method": "GetChecklistsModelo",
     "RelativePath": "api/modelos/{id}/checklists",
     "HttpMethod": "GET",
@@ -378,7 +384,7 @@
     "ReturnTypes": []
   },
   {
-    "ContainingType": "API_Amover.Controllers.ModelosController",
+    "ContainingType": "API_AMOVER.Controllers.ModelosController",
     "Method": "AddChecklistModelo",
     "RelativePath": "api/modelos/{id}/checklists",
     "HttpMethod": "POST",
@@ -392,14 +398,14 @@
       },
       {
         "Name": "req",
-        "Type": "API_Amover.Controllers.AddChecklistModeloRequest",
+        "Type": "API_AMOVER.Controllers.AddChecklistModeloRequest",
         "IsRequired": true
       }
     ],
     "ReturnTypes": []
   },
   {
-    "ContainingType": "API_Amover.Controllers.ModelosController",
+    "ContainingType": "API_AMOVER.Controllers.ModelosController",
     "Method": "RemoveChecklistModelo",
     "RelativePath": "api/modelos/{id}/checklists/{idAssoc}",
     "HttpMethod": "DELETE",
@@ -420,7 +426,7 @@
     "ReturnTypes": []
   },
   {
-    "ContainingType": "API_Amover.Controllers.ModelosController",
+    "ContainingType": "API_AMOVER.Controllers.ModelosController",
     "Method": "GetPecasFixas",
     "RelativePath": "api/modelos/{id}/pecas-fixas",
     "HttpMethod": "GET",
@@ -436,7 +442,7 @@
     "ReturnTypes": []
   },
   {
-    "ContainingType": "API_Amover.Controllers.ModelosController",
+    "ContainingType": "API_AMOVER.Controllers.ModelosController",
     "Method": "AddPecaFixa",
     "RelativePath": "api/modelos/{id}/pecas-fixas",
     "HttpMethod": "POST",
@@ -450,14 +456,14 @@
       },
       {
         "Name": "req",
-        "Type": "API_Amover.Controllers.AddPecaModeloRequest",
+        "Type": "API_AMOVER.Controllers.AddPecaModeloRequest",
         "IsRequired": true
       }
     ],
     "ReturnTypes": []
   },
   {
-    "ContainingType": "API_Amover.Controllers.ModelosController",
+    "ContainingType": "API_AMOVER.Controllers.ModelosController",
     "Method": "RemovePecaFixa",
     "RelativePath": "api/modelos/{id}/pecas-fixas/{idmpf}",
     "HttpMethod": "DELETE",
@@ -478,7 +484,7 @@
     "ReturnTypes": []
   },
   {
-    "ContainingType": "API_Amover.Controllers.ModelosController",
+    "ContainingType": "API_AMOVER.Controllers.ModelosController",
     "Method": "GetPecasSn",
     "RelativePath": "api/modelos/{id}/pecas-sn",
     "HttpMethod": "GET",
@@ -494,7 +500,7 @@
     "ReturnTypes": []
   },
   {
-    "ContainingType": "API_Amover.Controllers.ModelosController",
+    "ContainingType": "API_AMOVER.Controllers.ModelosController",
     "Method": "AddPecaSn",
     "RelativePath": "api/modelos/{id}/pecas-sn",
     "HttpMethod": "POST",
@@ -508,14 +514,14 @@
       },
       {
         "Name": "req",
-        "Type": "API_Amover.Controllers.AddPecaModeloRequest",
+        "Type": "API_AMOVER.Controllers.AddPecaModeloRequest",
         "IsRequired": true
       }
     ],
     "ReturnTypes": []
   },
   {
-    "ContainingType": "API_Amover.Controllers.ModelosController",
+    "ContainingType": "API_AMOVER.Controllers.ModelosController",
     "Method": "RemovePecaSn",
     "RelativePath": "api/modelos/{id}/pecas-sn/{idModeloPsn}",
     "HttpMethod": "DELETE",
@@ -536,17 +542,33 @@
     "ReturnTypes": []
   },
   {
-    "ContainingType": "API_Amover.Controllers.MotasController",
+    "ContainingType": "API_AMOVER.Controllers.MotasController",
     "Method": "GetAll",
     "RelativePath": "api/motas",
     "HttpMethod": "GET",
     "IsController": true,
     "Order": 0,
-    "Parameters": [],
+    "Parameters": [
+      {
+        "Name": "estado",
+        "Type": "System.Nullable\u00601[[System.Int32, System.Private.CoreLib, Version=8.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]]",
+        "IsRequired": false
+      },
+      {
+        "Name": "ordemId",
+        "Type": "System.Nullable\u00601[[System.Int32, System.Private.CoreLib, Version=8.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]]",
+        "IsRequired": false
+      },
+      {
+        "Name": "semVin",
+        "Type": "System.Nullable\u00601[[System.Boolean, System.Private.CoreLib, Version=8.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]]",
+        "IsRequired": false
+      }
+    ],
     "ReturnTypes": []
   },
   {
-    "ContainingType": "API_Amover.Controllers.MotasController",
+    "ContainingType": "API_AMOVER.Controllers.MotasController",
     "Method": "Create",
     "RelativePath": "api/motas",
     "HttpMethod": "POST",
@@ -555,14 +577,14 @@
     "Parameters": [
       {
         "Name": "req",
-        "Type": "API_Amover.Controllers.CreateMotaRequest",
+        "Type": "API_AMOVER.Controllers.CreateMotaRequest",
         "IsRequired": true
       }
     ],
     "ReturnTypes": []
   },
   {
-    "ContainingType": "API_Amover.Controllers.MotasController",
+    "ContainingType": "API_AMOVER.Controllers.MotasController",
     "Method": "Get",
     "RelativePath": "api/motas/{id}",
     "HttpMethod": "GET",
@@ -578,7 +600,49 @@
     "ReturnTypes": []
   },
   {
-    "ContainingType": "API_Amover.Controllers.MotasController",
+    "ContainingType": "API_AMOVER.Controllers.MotasController",
+    "Method": "UpdateEstado",
+    "RelativePath": "api/motas/{id}/estado",
+    "HttpMethod": "PUT",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "id",
+        "Type": "System.Int32",
+        "IsRequired": true
+      },
+      {
+        "Name": "req",
+        "Type": "API_AMOVER.Controllers.UpdateMotaEstadoRequest",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "API_AMOVER.Controllers.MotasController",
+    "Method": "UpdateNumeroIdentificacao",
+    "RelativePath": "api/motas/{id}/identificacao",
+    "HttpMethod": "PUT",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "id",
+        "Type": "System.Int32",
+        "IsRequired": true
+      },
+      {
+        "Name": "req",
+        "Type": "API_AMOVER.Controllers.UpdateNumeroIdentificacaoRequest",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "API_AMOVER.Controllers.MotasController",
     "Method": "GetPecasSn",
     "RelativePath": "api/motas/{id}/pecas-sn",
     "HttpMethod": "GET",
@@ -594,7 +658,7 @@
     "ReturnTypes": []
   },
   {
-    "ContainingType": "API_Amover.Controllers.MotasController",
+    "ContainingType": "API_AMOVER.Controllers.MotasController",
     "Method": "AddOrUpdatePecaSn",
     "RelativePath": "api/motas/{id}/pecas-sn",
     "HttpMethod": "POST",
@@ -608,14 +672,30 @@
       },
       {
         "Name": "req",
-        "Type": "API_Amover.Controllers.AddPecaSnRequest",
+        "Type": "API_AMOVER.Controllers.AddPecaSnRequest",
         "IsRequired": true
       }
     ],
     "ReturnTypes": []
   },
   {
-    "ContainingType": "API_Amover.Controllers.MotasController",
+    "ContainingType": "API_AMOVER.Controllers.MotasController",
+    "Method": "GetPecasSnResumo",
+    "RelativePath": "api/motas/{id}/pecas-sn/resumo",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "id",
+        "Type": "System.Int32",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "API_AMOVER.Controllers.MotasController",
     "Method": "GetByVin",
     "RelativePath": "api/motas/by-vin/{vin}",
     "HttpMethod": "GET",
@@ -631,7 +711,7 @@
     "ReturnTypes": []
   },
   {
-    "ContainingType": "API_Amover.Controllers.MotasController",
+    "ContainingType": "API_AMOVER.Controllers.MotasController",
     "Method": "DeletePecaSn",
     "RelativePath": "api/motas/pecas-sn/{idMotaPecaSn}",
     "HttpMethod": "DELETE",
@@ -647,7 +727,7 @@
     "ReturnTypes": []
   },
   {
-    "ContainingType": "API_Amover.Controllers.OrdensController",
+    "ContainingType": "API_AMOVER.Controllers.OrdensController",
     "Method": "GetOrdens",
     "RelativePath": "api/ordens",
     "HttpMethod": "GET",
@@ -663,7 +743,7 @@
     "ReturnTypes": []
   },
   {
-    "ContainingType": "API_Amover.Controllers.OrdensController",
+    "ContainingType": "API_AMOVER.Controllers.OrdensController",
     "Method": "GetOrdem",
     "RelativePath": "api/ordens/{id}",
     "HttpMethod": "GET",
@@ -679,7 +759,7 @@
     "ReturnTypes": []
   },
   {
-    "ContainingType": "API_Amover.Controllers.OrdensController",
+    "ContainingType": "API_AMOVER.Controllers.OrdensController",
     "Method": "UpdateEstado",
     "RelativePath": "api/ordens/{id}/estado",
     "HttpMethod": "PUT",
@@ -693,14 +773,46 @@
       },
       {
         "Name": "req",
-        "Type": "API_Amover.Controllers.UpdateEstadoRequest",
+        "Type": "API_AMOVER.Controllers.UpdateEstadoRequest",
         "IsRequired": true
       }
     ],
     "ReturnTypes": []
   },
   {
-    "ContainingType": "API_Amover.Controllers.OrdensController",
+    "ContainingType": "API_AMOVER.Controllers.OrdensController",
+    "Method": "FinalizarOrdem",
+    "RelativePath": "api/ordens/{id}/finalizar",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "id",
+        "Type": "System.Int32",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "API_AMOVER.Controllers.OrdensController",
+    "Method": "IniciarOrdem",
+    "RelativePath": "api/ordens/{id}/iniciar",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "id",
+        "Type": "System.Int32",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "API_AMOVER.Controllers.OrdensController",
     "Method": "GetMotasDaOrdem",
     "RelativePath": "api/ordens/{id}/motas",
     "HttpMethod": "GET",
@@ -716,7 +828,7 @@
     "ReturnTypes": []
   },
   {
-    "ContainingType": "API_Amover.Controllers.OrdensController",
+    "ContainingType": "API_AMOVER.Controllers.OrdensController",
     "Method": "CriarMotaNaOrdem",
     "RelativePath": "api/ordens/{id}/motas",
     "HttpMethod": "POST",
@@ -730,14 +842,14 @@
       },
       {
         "Name": "req",
-        "Type": "API_Amover.Controllers.CriarMotaRequest",
+        "Type": "API_AMOVER.Controllers.CriarMotaRequest",
         "IsRequired": true
       }
     ],
     "ReturnTypes": []
   },
   {
-    "ContainingType": "API_Amover.Controllers.OrdensController",
+    "ContainingType": "API_AMOVER.Controllers.OrdensController",
     "Method": "Resumo",
     "RelativePath": "api/ordens/{id}/resumo",
     "HttpMethod": "GET",
@@ -753,7 +865,7 @@
     "ReturnTypes": []
   },
   {
-    "ContainingType": "API_Amover.Controllers.ChecklistsController",
+    "ContainingType": "API_AMOVER.Controllers.ChecklistsController",
     "Method": "GetByOrdem",
     "RelativePath": "api/ordens/{ordemId}/checklists",
     "HttpMethod": "GET",
@@ -769,7 +881,7 @@
     "ReturnTypes": []
   },
   {
-    "ContainingType": "API_Amover.Controllers.ChecklistsController",
+    "ContainingType": "API_AMOVER.Controllers.ChecklistsController",
     "Method": "SetControlo",
     "RelativePath": "api/ordens/{ordemId}/checklists/controlo/{checklistId}",
     "HttpMethod": "PUT",
@@ -788,14 +900,14 @@
       },
       {
         "Name": "req",
-        "Type": "API_Amover.Controllers.UpdateFlagRequest",
+        "Type": "API_AMOVER.Controllers.UpdateFlagRequest",
         "IsRequired": true
       }
     ],
     "ReturnTypes": []
   },
   {
-    "ContainingType": "API_Amover.Controllers.ChecklistsController",
+    "ContainingType": "API_AMOVER.Controllers.ChecklistsController",
     "Method": "SetEmbalagem",
     "RelativePath": "api/ordens/{ordemId}/checklists/embalagem/{checklistId}",
     "HttpMethod": "PUT",
@@ -814,14 +926,14 @@
       },
       {
         "Name": "req",
-        "Type": "API_Amover.Controllers.UpdateFlagRequest",
+        "Type": "API_AMOVER.Controllers.UpdateFlagRequest",
         "IsRequired": true
       }
     ],
     "ReturnTypes": []
   },
   {
-    "ContainingType": "API_Amover.Controllers.ChecklistsController",
+    "ContainingType": "API_AMOVER.Controllers.ChecklistsController",
     "Method": "SetMontagem",
     "RelativePath": "api/ordens/{ordemId}/checklists/montagem/{checklistId}",
     "HttpMethod": "PUT",
@@ -840,14 +952,14 @@
       },
       {
         "Name": "req",
-        "Type": "API_Amover.Controllers.UpdateFlagRequest",
+        "Type": "API_AMOVER.Controllers.UpdateFlagRequest",
         "IsRequired": true
       }
     ],
     "ReturnTypes": []
   },
   {
-    "ContainingType": "API_Amover.Controllers.OrdensController",
+    "ContainingType": "API_AMOVER.Controllers.OrdensController",
     "Method": "CriarFromEncomenda",
     "RelativePath": "api/ordens/from-encomenda/{encomendaId}",
     "HttpMethod": "POST",
@@ -861,14 +973,14 @@
       },
       {
         "Name": "req",
-        "Type": "API_Amover.Controllers.CriarOrdemFromEncomendaRequest",
+        "Type": "API_AMOVER.Controllers.CriarOrdemFromEncomendaRequest",
         "IsRequired": true
       }
     ],
     "ReturnTypes": []
   },
   {
-    "ContainingType": "API_Amover.Controllers.PecasController",
+    "ContainingType": "API_AMOVER.Controllers.PecasController",
     "Method": "GetAll",
     "RelativePath": "api/pecas",
     "HttpMethod": "GET",
@@ -878,7 +990,7 @@
     "ReturnTypes": []
   },
   {
-    "ContainingType": "API_Amover.Controllers.PecasController",
+    "ContainingType": "API_AMOVER.Controllers.PecasController",
     "Method": "Create",
     "RelativePath": "api/pecas",
     "HttpMethod": "POST",
@@ -887,14 +999,14 @@
     "Parameters": [
       {
         "Name": "req",
-        "Type": "API_Amover.Controllers.PecaCreateRequest",
+        "Type": "API_AMOVER.Controllers.PecaCreateRequest",
         "IsRequired": true
       }
     ],
     "ReturnTypes": []
   },
   {
-    "ContainingType": "API_Amover.Controllers.PecasController",
+    "ContainingType": "API_AMOVER.Controllers.PecasController",
     "Method": "Get",
     "RelativePath": "api/pecas/{id}",
     "HttpMethod": "GET",
@@ -910,7 +1022,7 @@
     "ReturnTypes": []
   },
   {
-    "ContainingType": "API_Amover.Controllers.PecasController",
+    "ContainingType": "API_AMOVER.Controllers.PecasController",
     "Method": "Update",
     "RelativePath": "api/pecas/{id}",
     "HttpMethod": "PUT",
@@ -924,14 +1036,14 @@
       },
       {
         "Name": "req",
-        "Type": "API_Amover.Controllers.PecaCreateRequest",
+        "Type": "API_AMOVER.Controllers.PecaCreateRequest",
         "IsRequired": true
       }
     ],
     "ReturnTypes": []
   },
   {
-    "ContainingType": "API_Amover.Controllers.PecasController",
+    "ContainingType": "API_AMOVER.Controllers.PecasController",
     "Method": "Delete",
     "RelativePath": "api/pecas/{id}",
     "HttpMethod": "DELETE",
@@ -947,7 +1059,85 @@
     "ReturnTypes": []
   },
   {
-    "ContainingType": "API_Amover.Controllers.ServicosController",
+    "ContainingType": "API_AMOVER.Controllers.ServicosController",
+    "Method": "GetAll",
+    "RelativePath": "api/servicos",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "estado",
+        "Type": "System.Nullable\u00601[[System.Int32, System.Private.CoreLib, Version=8.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]]",
+        "IsRequired": false
+      },
+      {
+        "Name": "motaId",
+        "Type": "System.Nullable\u00601[[System.Int32, System.Private.CoreLib, Version=8.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]]",
+        "IsRequired": false
+      },
+      {
+        "Name": "modeloId",
+        "Type": "System.Nullable\u00601[[System.Int32, System.Private.CoreLib, Version=8.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]]",
+        "IsRequired": false
+      },
+      {
+        "Name": "tipo",
+        "Type": "System.Nullable\u00601[[System.Int32, System.Private.CoreLib, Version=8.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]]",
+        "IsRequired": false
+      },
+      {
+        "Name": "vin",
+        "Type": "System.String",
+        "IsRequired": false
+      },
+      {
+        "Name": "emAberto",
+        "Type": "System.Nullable\u00601[[System.Boolean, System.Private.CoreLib, Version=8.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]]",
+        "IsRequired": false
+      },
+      {
+        "Name": "q",
+        "Type": "System.String",
+        "IsRequired": false
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "API_AMOVER.Controllers.ServicosController",
+    "Method": "Create",
+    "RelativePath": "api/servicos",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "req",
+        "Type": "API_AMOVER.Controllers.CreateServicoRequest",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "API_AMOVER.Controllers.ServicosController",
+    "Method": "Get",
+    "RelativePath": "api/servicos/{id}",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "id",
+        "Type": "System.Int32",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "API_AMOVER.Controllers.ServicosController",
     "Method": "UpdateEstado",
     "RelativePath": "api/servicos/{id}/estado",
     "HttpMethod": "PUT",
@@ -961,14 +1151,14 @@
       },
       {
         "Name": "req",
-        "Type": "API_Amover.Controllers.UpdateServicoEstadoRequest",
+        "Type": "API_AMOVER.Controllers.UpdateServicoEstadoRequest",
         "IsRequired": true
       }
     ],
     "ReturnTypes": []
   },
   {
-    "ContainingType": "API_Amover.Controllers.ServicosController",
+    "ContainingType": "API_AMOVER.Controllers.ServicosController",
     "Method": "GetPecasAlteradas",
     "RelativePath": "api/servicos/{id}/pecas-alteradas",
     "HttpMethod": "GET",
@@ -984,7 +1174,7 @@
     "ReturnTypes": []
   },
   {
-    "ContainingType": "API_Amover.Controllers.ServicosController",
+    "ContainingType": "API_AMOVER.Controllers.ServicosController",
     "Method": "AddPecaAlterada",
     "RelativePath": "api/servicos/{id}/pecas-alteradas",
     "HttpMethod": "POST",
@@ -998,14 +1188,114 @@
       },
       {
         "Name": "req",
-        "Type": "API_Amover.Controllers.AddPecaAlteradaRequest",
+        "Type": "API_AMOVER.Controllers.AddPecaAlteradaRequest",
         "IsRequired": true
       }
     ],
     "ReturnTypes": []
   },
   {
-    "ContainingType": "API_Amover.Controllers.ServicosController",
+    "ContainingType": "API_AMOVER.Controllers.ServicosController",
+    "Method": "GetHistoricoByVin",
+    "RelativePath": "api/servicos/by-vin/{vin}/historico",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "vin",
+        "Type": "System.String",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "API_AMOVER.Controllers.ServicosController",
+    "Method": "GetEmAberto",
+    "RelativePath": "api/servicos/em-aberto",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "API_AMOVER.Controllers.ServicosController",
+    "Method": "GetMeta",
+    "RelativePath": "api/servicos/meta",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "API_AMOVER.Controllers.ServicosController",
+    "Method": "GetGarantiasByModelo",
+    "RelativePath": "api/servicos/modelos/{idModelo}/garantias",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "idModelo",
+        "Type": "System.Int32",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "API_AMOVER.Controllers.ServicosController",
+    "Method": "GetHistoricoByModelo",
+    "RelativePath": "api/servicos/modelos/{idModelo}/historico",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "idModelo",
+        "Type": "System.Int32",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "API_AMOVER.Controllers.ServicosController",
+    "Method": "GetProblemasFrequentesByModelo",
+    "RelativePath": "api/servicos/modelos/{idModelo}/problemas-frequentes",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "idModelo",
+        "Type": "System.Int32",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "API_AMOVER.Controllers.ServicosController",
+    "Method": "GetHistoricoByMota",
+    "RelativePath": "api/servicos/motas/{motaId}/historico",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "motaId",
+        "Type": "System.Int32",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "API_AMOVER.Controllers.ServicosController",
     "Method": "DeleteAssoc",
     "RelativePath": "api/servicos/pecas-alteradas/{idAssoc}",
     "HttpMethod": "DELETE",
@@ -1021,17 +1311,28 @@
     "ReturnTypes": []
   },
   {
-    "ContainingType": "API_Amover.Controllers.UtilizadoresController",
+    "ContainingType": "API_AMOVER.Controllers.UtilizadoresController",
     "Method": "GetAll",
     "RelativePath": "api/utilizadores",
     "HttpMethod": "GET",
     "IsController": true,
     "Order": 0,
-    "Parameters": [],
+    "Parameters": [
+      {
+        "Name": "estado",
+        "Type": "System.Nullable\u00601[[System.Int32, System.Private.CoreLib, Version=8.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]]",
+        "IsRequired": false
+      },
+      {
+        "Name": "q",
+        "Type": "System.String",
+        "IsRequired": false
+      }
+    ],
     "ReturnTypes": []
   },
   {
-    "ContainingType": "API_Amover.Controllers.UtilizadoresController",
+    "ContainingType": "API_AMOVER.Controllers.UtilizadoresController",
     "Method": "Create",
     "RelativePath": "api/utilizadores",
     "HttpMethod": "POST",
@@ -1040,16 +1341,16 @@
     "Parameters": [
       {
         "Name": "req",
-        "Type": "API_Amover.Controllers.UtilizadorCreateRequest",
+        "Type": "API_AMOVER.Controllers.UtilizadorCreateRequest",
         "IsRequired": true
       }
     ],
     "ReturnTypes": []
   },
   {
-    "ContainingType": "API_Amover.Controllers.UtilizadoresController",
-    "Method": "GetMotas",
-    "RelativePath": "api/utilizadores/{id}/motas",
+    "ContainingType": "API_AMOVER.Controllers.UtilizadoresController",
+    "Method": "Get",
+    "RelativePath": "api/utilizadores/{id}",
     "HttpMethod": "GET",
     "IsController": true,
     "Order": 0,
@@ -1063,7 +1364,49 @@
     "ReturnTypes": []
   },
   {
-    "ContainingType": "API_Amover.Controllers.UtilizadoresController",
+    "ContainingType": "API_AMOVER.Controllers.UtilizadoresController",
+    "Method": "UpdateAuthMapping",
+    "RelativePath": "api/utilizadores/{id}/mapping-auth",
+    "HttpMethod": "PUT",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "id",
+        "Type": "System.Int32",
+        "IsRequired": true
+      },
+      {
+        "Name": "req",
+        "Type": "API_AMOVER.Controllers.UpdateAuthMappingRequest",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "API_AMOVER.Controllers.UtilizadoresController",
+    "Method": "GetMotas",
+    "RelativePath": "api/utilizadores/{id}/motas",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "id",
+        "Type": "System.Int32",
+        "IsRequired": true
+      },
+      {
+        "Name": "ativasOnly",
+        "Type": "System.Boolean",
+        "IsRequired": false
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "API_AMOVER.Controllers.UtilizadoresController",
     "Method": "AssignMota",
     "RelativePath": "api/utilizadores/{id}/motas",
     "HttpMethod": "POST",
@@ -1077,14 +1420,30 @@
       },
       {
         "Name": "req",
-        "Type": "API_Amover.Controllers.AssignMotaRequest",
+        "Type": "API_AMOVER.Controllers.AssignMotaRequest",
         "IsRequired": true
       }
     ],
     "ReturnTypes": []
   },
   {
-    "ContainingType": "API_Amover.Controllers.UtilizadoresController",
+    "ContainingType": "API_AMOVER.Controllers.UtilizadoresController",
+    "Method": "GetMotasHistorico",
+    "RelativePath": "api/utilizadores/{id}/motas/historico",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "id",
+        "Type": "System.Int32",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "API_AMOVER.Controllers.UtilizadoresController",
     "Method": "UpdateStatus",
     "RelativePath": "api/utilizadores/{id}/status",
     "HttpMethod": "PUT",
@@ -1098,14 +1457,51 @@
       },
       {
         "Name": "req",
-        "Type": "API_Amover.Controllers.UpdateUserStatusRequest",
+        "Type": "API_AMOVER.Controllers.UpdateUserStatusRequest",
         "IsRequired": true
       }
     ],
     "ReturnTypes": []
   },
   {
-    "ContainingType": "API_Amover.Controllers.UtilizadoresController",
+    "ContainingType": "API_AMOVER.Controllers.UtilizadoresController",
+    "Method": "GetByAuth",
+    "RelativePath": "api/utilizadores/by-auth/{authUserId}",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "authUserId",
+        "Type": "System.String",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "API_AMOVER.Controllers.UtilizadoresController",
+    "Method": "GetMotasByAuth",
+    "RelativePath": "api/utilizadores/by-auth/{authUserId}/motas",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "authUserId",
+        "Type": "System.String",
+        "IsRequired": true
+      },
+      {
+        "Name": "ativasOnly",
+        "Type": "System.Boolean",
+        "IsRequired": false
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "API_AMOVER.Controllers.UtilizadoresController",
     "Method": "InativarAssoc",
     "RelativePath": "api/utilizadores/motas/{idUtilizadorMota}/inativar",
     "HttpMethod": "PUT",
@@ -1119,8 +1515,8 @@
       },
       {
         "Name": "req",
-        "Type": "API_Amover.Controllers.InativarAssocRequest",
-        "IsRequired": true
+        "Type": "API_AMOVER.Controllers.InativarAssocRequest",
+        "IsRequired": false
       }
     ],
     "ReturnTypes": []

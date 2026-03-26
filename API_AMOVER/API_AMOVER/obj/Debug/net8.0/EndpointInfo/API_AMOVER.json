@@ -53,10 +53,32 @@
         }
       }
     },
+    "/api/Auth/me": {
+      "get": {
+        "tags": [
+          "Auth"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
     "/api/checklists": {
       "get": {
         "tags": [
           "Checklists"
+        ],
+        "parameters": [
+          {
+            "name": "tipo",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
         ],
         "responses": {
           "200": {
@@ -644,18 +666,6 @@
         }
       }
     },
-    "/api/me": {
-      "get": {
-        "tags": [
-          "Me"
-        ],
-        "responses": {
-          "200": {
-            "description": "OK"
-          }
-        }
-      }
-    },
     "/api/modelos": {
       "get": {
         "tags": [
@@ -1060,6 +1070,31 @@
         "tags": [
           "Motas"
         ],
+        "parameters": [
+          {
+            "name": "estado",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "ordemId",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "semVin",
+            "in": "query",
+            "schema": {
+              "type": "boolean"
+            }
+          }
+        ],
         "responses": {
           "200": {
             "description": "OK"
@@ -1141,6 +1176,48 @@
         }
       }
     },
+    "/api/motas/{id}/identificacao": {
+      "put": {
+        "tags": [
+          "Motas"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateNumeroIdentificacaoRequest"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateNumeroIdentificacaoRequest"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateNumeroIdentificacaoRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
     "/api/motas/{id}/pecas-sn": {
       "get": {
         "tags": [
@@ -1204,6 +1281,29 @@
         }
       }
     },
+    "/api/motas/{id}/pecas-sn/resumo": {
+      "get": {
+        "tags": [
+          "Motas"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
     "/api/motas/pecas-sn/{idMotaPecaSn}": {
       "delete": {
         "tags": [
@@ -1220,6 +1320,48 @@
             }
           }
         ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/motas/{id}/estado": {
+      "put": {
+        "tags": [
+          "Motas"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateMotaEstadoRequest"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateMotaEstadoRequest"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateMotaEstadoRequest"
+              }
+            }
+          }
+        },
         "responses": {
           "200": {
             "description": "OK"
@@ -1307,6 +1449,52 @@
             }
           }
         },
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/ordens/{id}/iniciar": {
+      "post": {
+        "tags": [
+          "Ordens"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/ordens/{id}/finalizar": {
+      "post": {
+        "tags": [
+          "Ordens"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
         "responses": {
           "200": {
             "description": "OK"
@@ -1567,6 +1755,149 @@
         }
       }
     },
+    "/api/servicos/meta": {
+      "get": {
+        "tags": [
+          "Servicos"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/servicos": {
+      "get": {
+        "tags": [
+          "Servicos"
+        ],
+        "parameters": [
+          {
+            "name": "estado",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "motaId",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "modeloId",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "tipo",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "vin",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "emAberto",
+            "in": "query",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "q",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Servicos"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateServicoRequest"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateServicoRequest"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateServicoRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/servicos/em-aberto": {
+      "get": {
+        "tags": [
+          "Servicos"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/servicos/{id}": {
+      "get": {
+        "tags": [
+          "Servicos"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
     "/api/servicos/{id}/estado": {
       "put": {
         "tags": [
@@ -1695,10 +2026,141 @@
         }
       }
     },
+    "/api/servicos/motas/{motaId}/historico": {
+      "get": {
+        "tags": [
+          "Servicos"
+        ],
+        "parameters": [
+          {
+            "name": "motaId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/servicos/by-vin/{vin}/historico": {
+      "get": {
+        "tags": [
+          "Servicos"
+        ],
+        "parameters": [
+          {
+            "name": "vin",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/servicos/modelos/{idModelo}/historico": {
+      "get": {
+        "tags": [
+          "Servicos"
+        ],
+        "parameters": [
+          {
+            "name": "idModelo",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/servicos/modelos/{idModelo}/problemas-frequentes": {
+      "get": {
+        "tags": [
+          "Servicos"
+        ],
+        "parameters": [
+          {
+            "name": "idModelo",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/servicos/modelos/{idModelo}/garantias": {
+      "get": {
+        "tags": [
+          "Servicos"
+        ],
+        "parameters": [
+          {
+            "name": "idModelo",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
     "/api/utilizadores": {
       "get": {
         "tags": [
           "Utilizadores"
+        ],
+        "parameters": [
+          {
+            "name": "estado",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "q",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
         ],
         "responses": {
           "200": {
@@ -1729,6 +2191,29 @@
             }
           }
         },
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/utilizadores/{id}": {
+      "get": {
+        "tags": [
+          "Utilizadores"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
         "responses": {
           "200": {
             "description": "OK"
@@ -1778,6 +2263,100 @@
         }
       }
     },
+    "/api/utilizadores/{id}/mapping-auth": {
+      "put": {
+        "tags": [
+          "Utilizadores"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateAuthMappingRequest"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateAuthMappingRequest"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateAuthMappingRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/utilizadores/by-auth/{authUserId}": {
+      "get": {
+        "tags": [
+          "Utilizadores"
+        ],
+        "parameters": [
+          {
+            "name": "authUserId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/utilizadores/by-auth/{authUserId}/motas": {
+      "get": {
+        "tags": [
+          "Utilizadores"
+        ],
+        "parameters": [
+          {
+            "name": "authUserId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "ativasOnly",
+            "in": "query",
+            "schema": {
+              "type": "boolean",
+              "default": true
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
     "/api/utilizadores/{id}/motas": {
       "get": {
         "tags": [
@@ -1791,6 +2370,14 @@
             "schema": {
               "type": "integer",
               "format": "int32"
+            }
+          },
+          {
+            "name": "ativasOnly",
+            "in": "query",
+            "schema": {
+              "type": "boolean",
+              "default": true
             }
           }
         ],
@@ -1834,6 +2421,29 @@
             }
           }
         },
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/utilizadores/{id}/motas/historico": {
+      "get": {
+        "tags": [
+          "Utilizadores"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
         "responses": {
           "200": {
             "description": "OK"
@@ -1904,6 +2514,10 @@
             "format": "int32"
           },
           "observacoes": {
+            "type": "string",
+            "nullable": true
+          },
+          "novoNumeroSerie": {
             "type": "string",
             "nullable": true
           }
@@ -2022,6 +2636,42 @@
             "format": "int32"
           },
           "numeroIdentificacao": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "CreateServicoRequest": {
+        "type": "object",
+        "properties": {
+          "idMota": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "tipo": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "descricao": {
+            "type": "string",
+            "nullable": true
+          },
+          "estado": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "dataServico": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "dataConclusao": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "notasServico": {
             "type": "string",
             "nullable": true
           }
@@ -2176,6 +2826,24 @@
           "expiresInMinutes": {
             "type": "integer",
             "format": "int32"
+          },
+          "idUtilizador": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          },
+          "nomeUtilizador": {
+            "type": "string",
+            "nullable": true
+          },
+          "estadoUtilizador": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          },
+          "estadoUtilizadorNome": {
+            "type": "string",
+            "nullable": true
           }
         },
         "additionalProperties": false
@@ -2226,6 +2894,16 @@
         },
         "additionalProperties": false
       },
+      "UpdateAuthMappingRequest": {
+        "type": "object",
+        "properties": {
+          "authUserId": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
       "UpdateEstadoRequest": {
         "type": "object",
         "properties": {
@@ -2242,6 +2920,26 @@
           "value": {
             "type": "integer",
             "format": "int32"
+          }
+        },
+        "additionalProperties": false
+      },
+      "UpdateMotaEstadoRequest": {
+        "type": "object",
+        "properties": {
+          "estado": {
+            "type": "integer",
+            "format": "int32"
+          }
+        },
+        "additionalProperties": false
+      },
+      "UpdateNumeroIdentificacaoRequest": {
+        "type": "object",
+        "properties": {
+          "numeroIdentificacao": {
+            "type": "string",
+            "nullable": true
           }
         },
         "additionalProperties": false
