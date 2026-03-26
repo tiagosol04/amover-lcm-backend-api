@@ -3,7 +3,7 @@ using API_AMOVER.Data.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
-namespace API_Amover.Controllers
+namespace API_AMOVER.Controllers
 {
     public class EncomendaCreateRequest
     {
@@ -19,18 +19,31 @@ namespace API_Amover.Controllers
     public class EncomendasController : ControllerBase
     {
         private readonly LcmContext _db;
-        public EncomendasController(LcmContext db) => _db = db;
+
+        public EncomendasController(LcmContext db)
+        {
+            _db = db;
+        }
 
         // GET /api/encomendas?clienteId=1&estado=2
         [HttpGet]
         public async Task<IActionResult> GetAll([FromQuery] int? clienteId = null, [FromQuery] int? estado = null)
         {
-            var q = _db.Set<Encomenda>().AsNoTracking();
+            if (clienteId.HasValue && clienteId.Value <= 0)
+                return BadRequest(new { message = "clienteId inválido." });
 
-            if (clienteId.HasValue) q = q.Where(e => e.IDCliente == clienteId.Value);
-            if (estado.HasValue) q = q.Where(e => e.Estado == estado.Value);
+            if (estado.HasValue && estado.Value < 0)
+                return BadRequest(new { message = "estado inválido." });
 
-            var lista = await q
+            var query = _db.Set<Encomenda>().AsNoTracking();
+
+            if (clienteId.HasValue)
+                query = query.Where(e => e.IDCliente == clienteId.Value);
+
+            if (estado.HasValue)
+                query = query.Where(e => e.Estado == estado.Value);
+
+            var lista = await query
                 .OrderByDescending(e => e.DateCriacao)
                 .Select(e => new
                 {
@@ -51,7 +64,7 @@ namespace API_Amover.Controllers
         [HttpGet("{id:int}")]
         public async Task<IActionResult> Get(int id)
         {
-            var e = await _db.Set<Encomenda>()
+            var encomenda = await _db.Set<Encomenda>()
                 .AsNoTracking()
                 .Where(x => x.IDEncomenda == id)
                 .Select(x => new
@@ -66,54 +79,97 @@ namespace API_Amover.Controllers
                 })
                 .FirstOrDefaultAsync();
 
-            return e == null ? NotFound() : Ok(e);
+            if (encomenda == null)
+                return NotFound(new { message = "Encomenda não encontrada." });
+
+            return Ok(encomenda);
         }
 
         // POST /api/encomendas
         [HttpPost]
         public async Task<IActionResult> Create([FromBody] EncomendaCreateRequest req)
         {
+            if (req == null)
+                return BadRequest(new { message = "Body inválido." });
+
             if (req.IDCliente <= 0 || req.IDModelo <= 0 || req.Quantidade <= 0)
                 return BadRequest(new { message = "IDCliente, IDModelo e Quantidade são obrigatórios." });
 
-            var e = new Encomenda
+            if (req.Estado < 0)
+                return BadRequest(new { message = "Estado inválido." });
+
+            var cliente = await _db.Set<Cliente>()
+                .FirstOrDefaultAsync(c => c.IDCliente == req.IDCliente);
+
+            if (cliente == null)
+                return NotFound(new { message = "Cliente não encontrado." });
+
+            var modeloExiste = await _db.Set<ModelosMotum>()
+                .AsNoTracking()
+                .AnyAsync(m => m.IDModelo == req.IDModelo);
+
+            if (!modeloExiste)
+                return NotFound(new { message = "Modelo não encontrado." });
+
+            var agora = DateTime.UtcNow;
+
+            var encomenda = new Encomenda
             {
                 IDCliente = req.IDCliente,
                 IDModelo = req.IDModelo,
                 Quantidade = req.Quantidade,
                 Estado = req.Estado,
-                DateCriacao = DateTime.UtcNow,
+                DateCriacao = agora,
                 DataEntrega = req.DataEntrega
             };
 
-            _db.Set<Encomenda>().Add(e);
+            _db.Set<Encomenda>().Add(encomenda);
+
+            cliente.UltimaEncomenda = agora;
+
             await _db.SaveChangesAsync();
 
-            // (opcional) atualizar UltimaEncomenda do cliente
-            var cliente = await _db.Set<Cliente>().FirstOrDefaultAsync(c => c.IDCliente == req.IDCliente);
-            if (cliente != null)
-            {
-                cliente.UltimaEncomenda = DateTime.UtcNow;
-                await _db.SaveChangesAsync();
-            }
-
-            return Ok(new { e.IDEncomenda });
+            return CreatedAtAction(nameof(Get), new { id = encomenda.IDEncomenda }, new { encomenda.IDEncomenda });
         }
 
         // PUT /api/encomendas/{id}
         [HttpPut("{id:int}")]
         public async Task<IActionResult> Update(int id, [FromBody] EncomendaCreateRequest req)
         {
-            var e = await _db.Set<Encomenda>().FirstOrDefaultAsync(x => x.IDEncomenda == id);
-            if (e == null) return NotFound();
+            if (req == null)
+                return BadRequest(new { message = "Body inválido." });
 
-            if (req.Quantidade <= 0) return BadRequest(new { message = "Quantidade inválida." });
+            var encomenda = await _db.Set<Encomenda>()
+                .FirstOrDefaultAsync(x => x.IDEncomenda == id);
 
-            e.IDCliente = req.IDCliente;
-            e.IDModelo = req.IDModelo;
-            e.Quantidade = req.Quantidade;
-            e.Estado = req.Estado;
-            e.DataEntrega = req.DataEntrega;
+            if (encomenda == null)
+                return NotFound(new { message = "Encomenda não encontrada." });
+
+            if (req.IDCliente <= 0 || req.IDModelo <= 0 || req.Quantidade <= 0)
+                return BadRequest(new { message = "IDCliente, IDModelo e Quantidade são obrigatórios." });
+
+            if (req.Estado < 0)
+                return BadRequest(new { message = "Estado inválido." });
+
+            var clienteExiste = await _db.Set<Cliente>()
+                .AsNoTracking()
+                .AnyAsync(c => c.IDCliente == req.IDCliente);
+
+            if (!clienteExiste)
+                return NotFound(new { message = "Cliente não encontrado." });
+
+            var modeloExiste = await _db.Set<ModelosMotum>()
+                .AsNoTracking()
+                .AnyAsync(m => m.IDModelo == req.IDModelo);
+
+            if (!modeloExiste)
+                return NotFound(new { message = "Modelo não encontrado." });
+
+            encomenda.IDCliente = req.IDCliente;
+            encomenda.IDModelo = req.IDModelo;
+            encomenda.Quantidade = req.Quantidade;
+            encomenda.Estado = req.Estado;
+            encomenda.DataEntrega = req.DataEntrega;
 
             await _db.SaveChangesAsync();
             return NoContent();

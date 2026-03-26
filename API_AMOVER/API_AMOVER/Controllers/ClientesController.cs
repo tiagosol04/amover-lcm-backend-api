@@ -3,7 +3,7 @@ using API_AMOVER.Data.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
-namespace API_Amover.Controllers
+namespace API_AMOVER.Controllers
 {
     public class ClienteCreateRequest
     {
@@ -22,7 +22,11 @@ namespace API_Amover.Controllers
     public class ClientesController : ControllerBase
     {
         private readonly LcmContext _db;
-        public ClientesController(LcmContext db) => _db = db;
+
+        public ClientesController(LcmContext db)
+        {
+            _db = db;
+        }
 
         // GET /api/clientes
         [HttpGet]
@@ -49,7 +53,7 @@ namespace API_Amover.Controllers
         [HttpGet("{id:int}")]
         public async Task<IActionResult> Get(int id)
         {
-            var c = await _db.Set<Cliente>()
+            var cliente = await _db.Set<Cliente>()
                 .AsNoTracking()
                 .Where(x => x.IDCliente == id)
                 .Select(x => new
@@ -63,19 +67,37 @@ namespace API_Amover.Controllers
                 })
                 .FirstOrDefaultAsync();
 
-            return c == null ? NotFound() : Ok(c);
+            if (cliente == null)
+                return NotFound(new { message = "Cliente não encontrado." });
+
+            return Ok(cliente);
         }
 
         // POST /api/clientes
         [HttpPost]
         public async Task<IActionResult> Create([FromBody] ClienteCreateRequest req)
         {
+            if (req == null)
+                return BadRequest(new { message = "Body inválido." });
+
             if (string.IsNullOrWhiteSpace(req.Nome))
                 return BadRequest(new { message = "Nome é obrigatório." });
 
+            if (req.Tipo < 0)
+                return BadRequest(new { message = "Tipo inválido." });
+
+            var nome = req.Nome.Trim();
+
+            var duplicado = await _db.Set<Cliente>()
+                .AsNoTracking()
+                .AnyAsync(c => c.Nome != null && c.Nome.ToUpper() == nome.ToUpper());
+
+            if (duplicado)
+                return Conflict(new { message = "Já existe um cliente com esse nome." });
+
             var cliente = new Cliente
             {
-                Nome = req.Nome.Trim(),
+                Nome = nome,
                 Tipo = req.Tipo,
                 DataCriacao = DateTime.UtcNow
             };
@@ -90,13 +112,31 @@ namespace API_Amover.Controllers
         [HttpPut("{id:int}")]
         public async Task<IActionResult> Update(int id, [FromBody] ClienteUpdateRequest req)
         {
-            var cliente = await _db.Set<Cliente>().FirstOrDefaultAsync(c => c.IDCliente == id);
-            if (cliente == null) return NotFound();
+            if (req == null)
+                return BadRequest(new { message = "Body inválido." });
+
+            var cliente = await _db.Set<Cliente>()
+                .FirstOrDefaultAsync(c => c.IDCliente == id);
+
+            if (cliente == null)
+                return NotFound(new { message = "Cliente não encontrado." });
 
             if (string.IsNullOrWhiteSpace(req.Nome))
                 return BadRequest(new { message = "Nome é obrigatório." });
 
-            cliente.Nome = req.Nome.Trim();
+            if (req.Tipo < 0)
+                return BadRequest(new { message = "Tipo inválido." });
+
+            var nome = req.Nome.Trim();
+
+            var duplicado = await _db.Set<Cliente>()
+                .AsNoTracking()
+                .AnyAsync(c => c.IDCliente != id && c.Nome != null && c.Nome.ToUpper() == nome.ToUpper());
+
+            if (duplicado)
+                return Conflict(new { message = "Já existe outro cliente com esse nome." });
+
+            cliente.Nome = nome;
             cliente.Tipo = req.Tipo;
             cliente.DataModificacao = DateTime.UtcNow;
 
