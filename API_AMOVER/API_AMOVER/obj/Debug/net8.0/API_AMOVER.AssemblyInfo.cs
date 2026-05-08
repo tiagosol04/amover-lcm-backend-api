@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("API_AMOVER")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+c9e3e8d44168211fbb679afb3dba400e5c9c931a")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+085239421713fc85b1e39c9e8cf42e0d4328302e")]
 [assembly: System.Reflection.AssemblyProductAttribute("API_AMOVER")]
 [assembly: System.Reflection.AssemblyTitleAttribute("API_AMOVER")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
