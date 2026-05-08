@@ -106,6 +106,19 @@ namespace API_AMOVER.Controllers
         public string? Resolucao { get; set; }
     }
 
+    public class HistoricoEventoDto
+    {
+        public int Id { get; set; }
+        public string Tipo { get; set; } = string.Empty;
+        public string Descricao { get; set; } = string.Empty;
+        public int? UtilizadorId { get; set; }
+        public string? UtilizadorNome { get; set; }
+        public string DataOcorrencia { get; set; } = string.Empty;
+        public string? ValorAnterior { get; set; }
+        public string? ValorNovo { get; set; }
+        public bool Calculado { get; set; } = true;
+    }
+
     [ApiController]
     [Route("api/ordens")]
     public class OrdensController : ControllerBase
@@ -1068,6 +1081,213 @@ namespace API_AMOVER.Controllers
                 ativasOnly,
                 total = utilizadores.Count,
                 utilizadores
+            });
+        }
+
+        // GET /api/ordens/{id}/historico
+        [HttpGet("{id:int}/historico")]
+        public async Task<IActionResult> GetHistorico(int id)
+        {
+            var ordem = await _db.Set<OrdemProducao>()
+                .AsNoTracking()
+                .FirstOrDefaultAsync(o => o.IDOrdemProducao == id);
+
+            if (ordem == null)
+                return NotFound(new { message = "Ordem não encontrada." });
+
+            var mota = await _db.Set<Mota>()
+                .AsNoTracking()
+                .FirstOrDefaultAsync(m => m.IDOrdemProducao == id);
+
+            var temChecklists = await _db.Set<ChecklistMontagem>()
+                .AsNoTracking()
+                .AnyAsync(c => c.IDOrdemProducao == id);
+
+            var eventos = new List<HistoricoEventoDto>();
+            int seq = 1;
+
+            // Criação
+            eventos.Add(new HistoricoEventoDto
+            {
+                Id = seq++,
+                Tipo = "CRIACAO",
+                Descricao = $"Ordem {ordem.NumeroOrdem} criada.",
+                DataOcorrencia = ordem.DataCriacao.ToString("o"),
+                ValorAnterior = null,
+                ValorNovo = "Aberta"
+            });
+
+            // Iniciada em produção
+            if (ordem.Estado >= ESTADO_EM_PRODUCAO || temChecklists)
+            {
+                eventos.Add(new HistoricoEventoDto
+                {
+                    Id = seq++,
+                    Tipo = "ESTADO",
+                    Descricao = "Ordem iniciada em produção. Checklists criados. (Timestamp aproximado — data exata da transição não está persistida.)",
+                    DataOcorrencia = ordem.DataCriacao.ToString("o"),
+                    ValorAnterior = "Aberta",
+                    ValorNovo = "Em Produção"
+                });
+            }
+
+            // Unidade (mota) registada
+            if (mota != null)
+            {
+                eventos.Add(new HistoricoEventoDto
+                {
+                    Id = seq++,
+                    Tipo = "UNIDADE",
+                    Descricao = $"Unidade #{mota.IDMota} registada na ordem.",
+                    DataOcorrencia = mota.DataRegisto.ToString("o"),
+                    ValorAnterior = null,
+                    ValorNovo = $"#{mota.IDMota}"
+                });
+
+                if (!string.IsNullOrWhiteSpace(mota.NumeroIdentificacao))
+                {
+                    eventos.Add(new HistoricoEventoDto
+                    {
+                        Id = seq++,
+                        Tipo = "VIN",
+                        Descricao = $"Número de identificação registado: {mota.NumeroIdentificacao}. (Timestamp aproximado — sem campo DataVin na BD.)",
+                        DataOcorrencia = mota.DataRegisto.ToString("o"),
+                        ValorAnterior = null,
+                        ValorNovo = mota.NumeroIdentificacao
+                    });
+                }
+            }
+
+            // Concluída
+            if (ordem.DataConclusao.HasValue)
+            {
+                eventos.Add(new HistoricoEventoDto
+                {
+                    Id = seq++,
+                    Tipo = "ESTADO",
+                    Descricao = "Ordem finalizada. Todos os requisitos validados.",
+                    DataOcorrencia = ordem.DataConclusao.Value.ToString("o"),
+                    ValorAnterior = "Em Produção",
+                    ValorNovo = "Concluída"
+                });
+            }
+
+            // Bloqueada (estado atual)
+            if (ordem.Estado == ESTADO_BLOQUEADA)
+            {
+                var dataRef = (mota?.DataRegisto ?? ordem.DataCriacao).ToString("o");
+                eventos.Add(new HistoricoEventoDto
+                {
+                    Id = seq++,
+                    Tipo = "ESTADO",
+                    Descricao = "Ordem bloqueada. Motivo e data exata do bloqueio não estão persistidos na BD atual.",
+                    DataOcorrencia = dataRef,
+                    ValorAnterior = "Em Produção",
+                    ValorNovo = "Bloqueada"
+                });
+            }
+
+            return Ok(new
+            {
+                ordemId = id,
+                numeroOrdem = ordem.NumeroOrdem,
+                aviso = "Histórico calculado a partir do estado atual da BD. Sem tabela de auditoria — timestamps de transições de estado são aproximados.",
+                total = eventos.Count,
+                historico = eventos
+            });
+        }
+
+        // POST /api/ordens/{id}/marcar-embalada
+        [HttpPost("{id:int}/marcar-embalada")]
+        public async Task<IActionResult> MarcarEmbalada(int id)
+        {
+            var ordem = await _db.Set<OrdemProducao>()
+                .AsNoTracking()
+                .FirstOrDefaultAsync(o => o.IDOrdemProducao == id);
+
+            if (ordem == null)
+                return NotFound(new { message = "Ordem não encontrada." });
+
+            if (ordem.Estado != ESTADO_CONCLUIDA)
+                return Conflict(new { message = $"Só é possível marcar como embalada uma ordem Concluída. Estado atual: {GetEstadoOrdemNome(ordem.Estado)}." });
+
+            var mota = await _db.Set<Mota>()
+                .AsNoTracking()
+                .FirstOrDefaultAsync(m => m.IDOrdemProducao == id);
+
+            if (mota == null)
+                return Conflict(new { message = "A ordem não tem unidade (mota) associada." });
+
+            // Verificar checklist embalagem
+            var totalEmbalagem = await _db.Set<ChecklistEmbalagem>()
+                .AsNoTracking()
+                .CountAsync(c => c.IDOrdemProducao == id);
+
+            var embalagensOk = await _db.Set<ChecklistEmbalagem>()
+                .AsNoTracking()
+                .CountAsync(c => c.IDOrdemProducao == id && c.Incluido == 1);
+
+            var embalagensCompletas = totalEmbalagem > 0 && embalagensOk == totalEmbalagem;
+
+            return Ok(new
+            {
+                ordemId = id,
+                motaId = mota.IDMota,
+                vin = mota.NumeroIdentificacao,
+                embalagensCompletas,
+                totalItensEmbalagem = totalEmbalagem,
+                itensEmbalagemOk = embalagensOk,
+                aviso = "A BD atual não tem campo para registar data/estado de embalagem. Este endpoint valida as pré-condições mas não persiste o evento. Requer migration com tabela Expedicao para controlo completo."
+            });
+        }
+
+        // POST /api/ordens/{id}/marcar-enviada
+        [HttpPost("{id:int}/marcar-enviada")]
+        public async Task<IActionResult> MarcarEnviada(int id)
+        {
+            var ordem = await _db.Set<OrdemProducao>()
+                .AsNoTracking()
+                .FirstOrDefaultAsync(o => o.IDOrdemProducao == id);
+
+            if (ordem == null)
+                return NotFound(new { message = "Ordem não encontrada." });
+
+            if (ordem.Estado != ESTADO_CONCLUIDA)
+                return Conflict(new { message = $"Só é possível marcar como enviada uma ordem Concluída. Estado atual: {GetEstadoOrdemNome(ordem.Estado)}." });
+
+            var mota = await _db.Set<Mota>()
+                .FirstOrDefaultAsync(m => m.IDOrdemProducao == id);
+
+            if (mota == null)
+                return Conflict(new { message = "A ordem não tem unidade (mota) associada." });
+
+            if (string.IsNullOrWhiteSpace(mota.NumeroIdentificacao))
+                return Conflict(new { message = "O VIN da unidade não está preenchido. Não é possível marcar como enviada." });
+
+            if (mota.Estado == ESTADO_MOTA_ATIVA)
+                return Ok(new
+                {
+                    message = "A unidade já foi marcada como enviada (Ativa).",
+                    ordemId = id,
+                    motaId = mota.IDMota,
+                    vin = mota.NumeroIdentificacao,
+                    estado = mota.Estado,
+                    estadoNome = "Ativa",
+                    aviso = "Data e detalhes de expedição não estão persistidos. Requer migration com tabela Expedicao para controlo completo."
+                });
+
+            mota.Estado = ESTADO_MOTA_ATIVA;
+            await _db.SaveChangesAsync();
+
+            return Ok(new
+            {
+                message = "Unidade marcada como enviada. Estado da mota atualizado para Ativa.",
+                ordemId = id,
+                motaId = mota.IDMota,
+                vin = mota.NumeroIdentificacao,
+                estado = mota.Estado,
+                estadoNome = "Ativa",
+                aviso = "A mota foi transitada de 'Em Produção' para 'Ativa' como proxy de envio. Data e detalhes de expedição não estão persistidos. Requer migration com tabela Expedicao para controlo completo."
             });
         }
 
