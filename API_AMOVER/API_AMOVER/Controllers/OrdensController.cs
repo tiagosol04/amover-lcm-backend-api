@@ -61,6 +61,41 @@ namespace API_AMOVER.Controllers
         public ResumoChecklistsDto Checklists { get; set; } = new();
     }
 
+    public class MotaFichaDto
+    {
+        public int IDMota { get; set; }
+        public string NumeroIdentificacao { get; set; } = string.Empty;
+        public bool VinPreenchido { get; set; }
+        public string Cor { get; set; } = string.Empty;
+        public double Quilometragem { get; set; }
+        public int Estado { get; set; }
+        public DateTime DataRegisto { get; set; }
+    }
+
+    public class ModeloFichaDto
+    {
+        public int IDModelo { get; set; }
+        public string Nome { get; set; } = string.Empty;
+        public string CodigoProduto { get; set; } = string.Empty;
+        public int Estado { get; set; }
+    }
+
+    public class ClienteFichaDto
+    {
+        public int IDCliente { get; set; }
+        public string Nome { get; set; } = string.Empty;
+        public int Tipo { get; set; }
+    }
+
+    public class EncomendaFichaDto
+    {
+        public int IDEncomenda { get; set; }
+        public int Quantidade { get; set; }
+        public int Estado { get; set; }
+        public DateTime DateCriacao { get; set; }
+        public DateTime? DataEntrega { get; set; }
+    }
+
     [ApiController]
     [Route("api/ordens")]
     public class OrdensController : ControllerBase
@@ -85,9 +120,11 @@ namespace API_AMOVER.Controllers
             _db = db;
         }
 
-        // GET /api/ordens?estado=1
+        // GET /api/ordens?estado=1&includeNomes=true
         [HttpGet]
-        public async Task<IActionResult> GetOrdens([FromQuery] int? estado = null)
+        public async Task<IActionResult> GetOrdens(
+            [FromQuery] int? estado = null,
+            [FromQuery] bool includeNomes = false)
         {
             if (estado.HasValue && !EstadoOrdemValido(estado.Value))
                 return BadRequest(new { message = "Estado inválido para ordem." });
@@ -113,7 +150,56 @@ namespace API_AMOVER.Controllers
                 })
                 .ToListAsync();
 
-            return Ok(ordens);
+            if (!includeNomes)
+                return Ok(ordens);
+
+            var clienteIds = ordens
+                .Where(o => o.idCliente.HasValue)
+                .Select(o => o.idCliente!.Value)
+                .Distinct()
+                .ToList();
+
+            var modeloIds = ordens
+                .Where(o => o.idModelo.HasValue)
+                .Select(o => o.idModelo!.Value)
+                .Distinct()
+                .ToList();
+
+            var clientesDict = new Dictionary<int, string>();
+            if (clienteIds.Count > 0)
+            {
+                var cl = await _db.Set<Cliente>().AsNoTracking()
+                    .Where(c => clienteIds.Contains(c.IDCliente))
+                    .Select(c => new { c.IDCliente, c.Nome })
+                    .ToListAsync();
+                foreach (var c in cl) clientesDict[c.IDCliente] = c.Nome;
+            }
+
+            var modelosDict = new Dictionary<int, (string Nome, string CodigoProduto)>();
+            if (modeloIds.Count > 0)
+            {
+                var ml = await _db.Set<ModelosMotum>().AsNoTracking()
+                    .Where(m => modeloIds.Contains(m.IDModelo))
+                    .Select(m => new { m.IDModelo, m.Nome, m.CodigoProduto })
+                    .ToListAsync();
+                foreach (var m in ml) modelosDict[m.IDModelo] = (m.Nome, m.CodigoProduto);
+            }
+
+            return Ok(ordens.Select(o => new
+            {
+                o.IDOrdemProducao,
+                o.NumeroOrdem,
+                o.Estado,
+                o.PaisDestino,
+                o.DataCriacao,
+                o.DataConclusao,
+                o.IDEncomenda,
+                idModelo = o.idModelo,
+                idCliente = o.idCliente,
+                clienteNome = o.idCliente.HasValue ? clientesDict.GetValueOrDefault(o.idCliente.Value) : null,
+                modeloNome = o.idModelo.HasValue ? modelosDict.GetValueOrDefault(o.idModelo.Value).Nome : null,
+                modeloCodigo = o.idModelo.HasValue ? modelosDict.GetValueOrDefault(o.idModelo.Value).CodigoProduto : null
+            }));
         }
 
         // GET /api/ordens/{id}
@@ -631,6 +717,200 @@ namespace API_AMOVER.Controllers
             });
         }
 
+        // GET /api/ordens/{id}/ficha
+        [HttpGet("{id:int}/ficha")]
+        public async Task<IActionResult> GetFicha(int id)
+        {
+            var ordemExiste = await _db.Set<OrdemProducao>()
+                .AsNoTracking()
+                .AnyAsync(o => o.IDOrdemProducao == id);
+
+            if (!ordemExiste)
+                return NotFound(new { message = "Ordem não encontrada." });
+
+            var ordem = await _db.Set<OrdemProducao>()
+                .AsNoTracking()
+                .FirstAsync(o => o.IDOrdemProducao == id);
+
+            ModeloFichaDto? modelo = null;
+            if (ordem.ModeloMotaIDModelo.HasValue)
+            {
+                modelo = await _db.Set<ModelosMotum>()
+                    .AsNoTracking()
+                    .Where(m => m.IDModelo == ordem.ModeloMotaIDModelo.Value)
+                    .Select(m => new ModeloFichaDto
+                    {
+                        IDModelo = m.IDModelo,
+                        Nome = m.Nome,
+                        CodigoProduto = m.CodigoProduto,
+                        Estado = m.Estado
+                    })
+                    .FirstOrDefaultAsync();
+            }
+
+            ClienteFichaDto? cliente = null;
+            if (ordem.ClienteIDCliente.HasValue)
+            {
+                cliente = await _db.Set<Cliente>()
+                    .AsNoTracking()
+                    .Where(c => c.IDCliente == ordem.ClienteIDCliente.Value)
+                    .Select(c => new ClienteFichaDto
+                    {
+                        IDCliente = c.IDCliente,
+                        Nome = c.Nome,
+                        Tipo = c.Tipo
+                    })
+                    .FirstOrDefaultAsync();
+            }
+
+            var encomenda = await _db.Set<Encomenda>()
+                .AsNoTracking()
+                .Where(e => e.IDEncomenda == ordem.IDEncomenda)
+                .Select(e => new EncomendaFichaDto
+                {
+                    IDEncomenda = e.IDEncomenda,
+                    Quantidade = e.Quantidade,
+                    Estado = e.Estado,
+                    DateCriacao = e.DateCriacao,
+                    DataEntrega = e.DataEntrega
+                })
+                .FirstOrDefaultAsync();
+
+            var motaRaw = await _db.Set<Mota>()
+                .AsNoTracking()
+                .FirstOrDefaultAsync(m => m.IDOrdemProducao == id);
+
+            var motaFicha = motaRaw == null ? null : new MotaFichaDto
+            {
+                IDMota = motaRaw.IDMota,
+                NumeroIdentificacao = motaRaw.NumeroIdentificacao ?? string.Empty,
+                VinPreenchido = !string.IsNullOrWhiteSpace(motaRaw.NumeroIdentificacao),
+                Cor = motaRaw.Cor ?? string.Empty,
+                Quilometragem = motaRaw.Quilometragem,
+                Estado = motaRaw.Estado,
+                DataRegisto = motaRaw.DataRegisto
+            };
+
+            var resumo = await BuildResumoAsync(id);
+
+            var utilizadoresAtivos = 0;
+            if (motaRaw != null)
+            {
+                utilizadoresAtivos = await _db.Set<UtilizadorMotum>()
+                    .AsNoTracking()
+                    .CountAsync(x => x.IDMota == motaRaw.IDMota && x.Estado == 1);
+            }
+
+            return Ok(new
+            {
+                ordemId = ordem.IDOrdemProducao,
+                ordem.NumeroOrdem,
+                ordem.Estado,
+                estadoNome = GetEstadoOrdemNome(ordem.Estado),
+                ordem.PaisDestino,
+                ordem.DataCriacao,
+                ordem.DataConclusao,
+                encomenda,
+                cliente,
+                modelo,
+                mota = motaFicha,
+                resumo.TemMotaAssociada,
+                resumo.VinPreenchido,
+                checklists = resumo.Checklists,
+                pecasSn = resumo.PecasSn,
+                utilizadoresAtivos,
+                servicos = resumo.Servicos,
+                prontoParaFinalizar = resumo.Checklists.ProntoParaFinalizar
+            });
+        }
+
+        // POST /api/ordens/{id}/reabrir
+        [HttpPost("{id:int}/reabrir")]
+        public async Task<IActionResult> ReabrirOrdem(int id)
+        {
+            var ordem = await _db.Set<OrdemProducao>()
+                .FirstOrDefaultAsync(o => o.IDOrdemProducao == id);
+
+            if (ordem == null)
+                return NotFound(new { message = "Ordem não encontrada." });
+
+            if (ordem.Estado != ESTADO_CONCLUIDA)
+                return Conflict(new { message = "Apenas ordens concluídas podem ser reabertas." });
+
+            var mota = await _db.Set<Mota>()
+                .FirstOrDefaultAsync(m => m.IDOrdemProducao == id);
+
+            ordem.Estado = ESTADO_EM_PRODUCAO;
+            ordem.DataConclusao = null;
+
+            if (mota != null && mota.Estado == ESTADO_MOTA_ATIVA)
+                mota.Estado = ESTADO_MOTA_EM_PRODUCAO;
+
+            await _db.SaveChangesAsync();
+
+            var resumo = await BuildResumoAsync(id);
+
+            return Ok(new
+            {
+                message = "Ordem reaberta com sucesso.",
+                ordemId = id,
+                estado = ordem.Estado,
+                estadoNome = GetEstadoOrdemNome(ordem.Estado),
+                resumo
+            });
+        }
+
+        // GET /api/ordens/{id}/utilizadores?ativasOnly=true
+        [HttpGet("{id:int}/utilizadores")]
+        public async Task<IActionResult> GetUtilizadoresDaOrdem(int id, [FromQuery] bool ativasOnly = true)
+        {
+            var ordemExiste = await _db.Set<OrdemProducao>()
+                .AsNoTracking()
+                .AnyAsync(o => o.IDOrdemProducao == id);
+
+            if (!ordemExiste)
+                return NotFound(new { message = "Ordem não encontrada." });
+
+            var mota = await _db.Set<Mota>()
+                .AsNoTracking()
+                .FirstOrDefaultAsync(m => m.IDOrdemProducao == id);
+
+            if (mota == null)
+                return Ok(new { ordemId = id, motaId = (int?)null, total = 0, utilizadores = new List<object>() });
+
+            var query =
+                from um in _db.Set<UtilizadorMotum>().AsNoTracking()
+                join u in _db.Set<Utilizadore>().AsNoTracking() on um.IdUtilizador equals u.IdUtilizador
+                where um.IDMota == mota.IDMota
+                select new
+                {
+                    um.IDUtilizadorMota,
+                    u.IdUtilizador,
+                    u.Nome,
+                    u.Email,
+                    u.Telefone,
+                    estadoAssociacao = um.Estado,
+                    um.DataCriacao,
+                    um.DataInativacao
+                };
+
+            if (ativasOnly)
+                query = query.Where(x => x.estadoAssociacao == 1);
+
+            var utilizadores = await query
+                .OrderBy(x => x.Nome)
+                .ToListAsync();
+
+            return Ok(new
+            {
+                ordemId = id,
+                motaId = mota.IDMota,
+                ativasOnly,
+                total = utilizadores.Count,
+                utilizadores
+            });
+        }
+
         private async Task<ResumoOrdemDto> BuildResumoAsync(int ordemId)
         {
             var ordem = await _db.Set<OrdemProducao>()
@@ -793,5 +1073,13 @@ namespace API_AMOVER.Controllers
         {
             return string.IsNullOrWhiteSpace(value) ? string.Empty : NormalizeNumeroIdentificacao(value);
         }
+
+        private static string GetEstadoOrdemNome(int estado) => estado switch
+        {
+            ESTADO_ABERTA => "Aberta",
+            ESTADO_EM_PRODUCAO => "Em Produção",
+            ESTADO_CONCLUIDA => "Concluída",
+            _ => "Desconhecido"
+        };
     }
 }
