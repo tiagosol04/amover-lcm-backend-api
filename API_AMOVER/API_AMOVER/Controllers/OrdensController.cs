@@ -96,6 +96,11 @@ namespace API_AMOVER.Controllers
         public DateTime? DataEntrega { get; set; }
     }
 
+    public class BloquearOrdemRequest
+    {
+        public string Motivo { get; set; } = string.Empty;
+    }
+
     [ApiController]
     [Route("api/ordens")]
     public class OrdensController : ControllerBase
@@ -105,6 +110,7 @@ namespace API_AMOVER.Controllers
         private const int ESTADO_ABERTA = 0;
         private const int ESTADO_EM_PRODUCAO = 1;
         private const int ESTADO_CONCLUIDA = 2;
+        private const int ESTADO_BLOQUEADA = 3;
 
         private const int ESTADO_MOTA_EM_PRODUCAO = 0;
         private const int ESTADO_MOTA_ATIVA = 1;
@@ -717,6 +723,151 @@ namespace API_AMOVER.Controllers
             });
         }
 
+        // GET /api/ordens/prontos-expedicao
+        [HttpGet("prontos-expedicao")]
+        public async Task<IActionResult> GetProntosExpedicao()
+        {
+            var ordens = await _db.Set<OrdemProducao>()
+                .AsNoTracking()
+                .Where(o => o.Estado == ESTADO_CONCLUIDA)
+                .OrderByDescending(o => o.DataConclusao)
+                .Select(o => new
+                {
+                    o.IDOrdemProducao,
+                    o.NumeroOrdem,
+                    o.PaisDestino,
+                    o.DataCriacao,
+                    o.DataConclusao,
+                    o.IDEncomenda,
+                    idModelo = o.ModeloMotaIDModelo,
+                    idCliente = o.ClienteIDCliente
+                })
+                .ToListAsync();
+
+            if (ordens.Count == 0)
+                return Ok(new { total = 0, ordens = new List<object>() });
+
+            var ordemIds = ordens.Select(o => o.IDOrdemProducao).ToList();
+            var clienteIds = ordens.Where(o => o.idCliente.HasValue).Select(o => o.idCliente!.Value).Distinct().ToList();
+            var modeloIds = ordens.Where(o => o.idModelo.HasValue).Select(o => o.idModelo!.Value).Distinct().ToList();
+
+            var motas = await _db.Set<Mota>().AsNoTracking()
+                .Where(m => ordemIds.Contains(m.IDOrdemProducao))
+                .Select(m => new { m.IDMota, m.IDOrdemProducao, m.NumeroIdentificacao, m.Cor, m.Quilometragem })
+                .ToListAsync();
+
+            var clientesDict = new Dictionary<int, string>();
+            if (clienteIds.Count > 0)
+            {
+                var cl = await _db.Set<Cliente>().AsNoTracking()
+                    .Where(c => clienteIds.Contains(c.IDCliente))
+                    .Select(c => new { c.IDCliente, c.Nome })
+                    .ToListAsync();
+                foreach (var c in cl) clientesDict[c.IDCliente] = c.Nome;
+            }
+
+            var modelosDict = new Dictionary<int, (string Nome, string CodigoProduto)>();
+            if (modeloIds.Count > 0)
+            {
+                var ml = await _db.Set<ModelosMotum>().AsNoTracking()
+                    .Where(m => modeloIds.Contains(m.IDModelo))
+                    .Select(m => new { m.IDModelo, m.Nome, m.CodigoProduto })
+                    .ToListAsync();
+                foreach (var m in ml) modelosDict[m.IDModelo] = (m.Nome, m.CodigoProduto);
+            }
+
+            var motasDict = motas.ToDictionary(m => m.IDOrdemProducao);
+
+            var resultado = ordens.Select(o =>
+            {
+                var mota = motasDict.GetValueOrDefault(o.IDOrdemProducao);
+                return new
+                {
+                    o.IDOrdemProducao,
+                    o.NumeroOrdem,
+                    o.PaisDestino,
+                    o.DataCriacao,
+                    o.DataConclusao,
+                    idModelo = o.idModelo,
+                    idCliente = o.idCliente,
+                    clienteNome = o.idCliente.HasValue ? clientesDict.GetValueOrDefault(o.idCliente.Value) : null,
+                    modeloNome = o.idModelo.HasValue ? modelosDict.GetValueOrDefault(o.idModelo.Value).Nome : null,
+                    modeloCodigo = o.idModelo.HasValue ? modelosDict.GetValueOrDefault(o.idModelo.Value).CodigoProduto : null,
+                    motaId = mota?.IDMota,
+                    vin = mota?.NumeroIdentificacao,
+                    vinPreenchido = mota != null && !string.IsNullOrWhiteSpace(mota.NumeroIdentificacao)
+                };
+            }).ToList();
+
+            return Ok(new { total = resultado.Count, ordens = resultado });
+        }
+
+        // POST /api/ordens/{id}/bloquear
+        [HttpPost("{id:int}/bloquear")]
+        public async Task<IActionResult> BloquearOrdem(int id, [FromBody] BloquearOrdemRequest req)
+        {
+            if (req == null)
+                return BadRequest(new { message = "Body inválido." });
+
+            var ordem = await _db.Set<OrdemProducao>()
+                .FirstOrDefaultAsync(o => o.IDOrdemProducao == id);
+
+            if (ordem == null)
+                return NotFound(new { message = "Ordem não encontrada." });
+
+            if (ordem.Estado == ESTADO_BLOQUEADA)
+                return Conflict(new { message = "A ordem já está bloqueada." });
+
+            if (ordem.Estado == ESTADO_CONCLUIDA)
+                return Conflict(new { message = "Uma ordem concluída não pode ser bloqueada." });
+
+            ordem.Estado = ESTADO_BLOQUEADA;
+            await _db.SaveChangesAsync();
+
+            return Ok(new
+            {
+                message = "Ordem bloqueada com sucesso.",
+                ordemId = id,
+                estado = ordem.Estado,
+                estadoNome = GetEstadoOrdemNome(ordem.Estado),
+                motivo = string.IsNullOrWhiteSpace(req.Motivo) ? null : req.Motivo.Trim(),
+                aviso = "O motivo de bloqueio foi registado mas não é persistido. A BD atual não tem campo para o efeito."
+            });
+        }
+
+        // POST /api/ordens/{id}/desbloquear
+        [HttpPost("{id:int}/desbloquear")]
+        public async Task<IActionResult> DesbloquearOrdem(int id)
+        {
+            var ordem = await _db.Set<OrdemProducao>()
+                .FirstOrDefaultAsync(o => o.IDOrdemProducao == id);
+
+            if (ordem == null)
+                return NotFound(new { message = "Ordem não encontrada." });
+
+            if (ordem.Estado != ESTADO_BLOQUEADA)
+                return Conflict(new { message = "A ordem não está bloqueada." });
+
+            // Heurística: se já tem checklists inicializados, estava em produção antes do bloqueio
+            var temChecklists = await _db.Set<ChecklistMontagem>()
+                .AsNoTracking()
+                .AnyAsync(x => x.IDOrdemProducao == id);
+
+            ordem.Estado = temChecklists ? ESTADO_EM_PRODUCAO : ESTADO_ABERTA;
+            await _db.SaveChangesAsync();
+
+            var resumo = await BuildResumoAsync(id);
+
+            return Ok(new
+            {
+                message = $"Ordem desbloqueada com sucesso. Estado reposto para '{GetEstadoOrdemNome(ordem.Estado)}'.",
+                ordemId = id,
+                estado = ordem.Estado,
+                estadoNome = GetEstadoOrdemNome(ordem.Estado),
+                resumo
+            });
+        }
+
         // GET /api/ordens/{id}/ficha
         [HttpGet("{id:int}/ficha")]
         public async Task<IActionResult> GetFicha(int id)
@@ -1053,7 +1204,8 @@ namespace API_AMOVER.Controllers
         {
             return estado == ESTADO_ABERTA ||
                    estado == ESTADO_EM_PRODUCAO ||
-                   estado == ESTADO_CONCLUIDA;
+                   estado == ESTADO_CONCLUIDA ||
+                   estado == ESTADO_BLOQUEADA;
         }
 
         private static bool EstadoMotaValido(int estado)
@@ -1079,6 +1231,7 @@ namespace API_AMOVER.Controllers
             ESTADO_ABERTA => "Aberta",
             ESTADO_EM_PRODUCAO => "Em Produção",
             ESTADO_CONCLUIDA => "Concluída",
+            ESTADO_BLOQUEADA => "Bloqueada",
             _ => "Desconhecido"
         };
     }
