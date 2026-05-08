@@ -31,6 +31,13 @@ namespace API_AMOVER.Controllers
         public int Estado { get; set; }
     }
 
+    public class UpdateMotaRequest
+    {
+        public string NumeroIdentificacao { get; set; } = "";
+        public string Cor { get; set; } = "";
+        public double Quilometragem { get; set; }
+    }
+
     public class PecaSnResumoItemDto
     {
         public int IDPeca { get; set; }
@@ -471,6 +478,93 @@ namespace API_AMOVER.Controllers
                 message = "Estado da mota atualizado com sucesso.",
                 mota.IDMota,
                 mota.Estado
+            });
+        }
+
+        // PUT /api/motas/{id}
+        [HttpPut("{id:int}")]
+        public async Task<IActionResult> Update(int id, [FromBody] UpdateMotaRequest req)
+        {
+            if (req == null)
+                return BadRequest(new { message = "Body inválido." });
+
+            if (req.Quilometragem < 0)
+                return BadRequest(new { message = "Quilometragem inválida." });
+
+            var mota = await _db.Set<Mota>().FirstOrDefaultAsync(m => m.IDMota == id);
+            if (mota == null)
+                return NotFound(new { message = "Mota não encontrada." });
+
+            var cor = string.IsNullOrWhiteSpace(req.Cor) ? "N/A" : req.Cor.Trim();
+            var numeroIdentificacao = NormalizeNumeroIdentificacaoOrEmpty(req.NumeroIdentificacao);
+
+            if (!string.IsNullOrWhiteSpace(numeroIdentificacao) &&
+                !string.Equals(numeroIdentificacao, mota.NumeroIdentificacao, StringComparison.OrdinalIgnoreCase))
+            {
+                var vinDuplicado = await _db.Set<Mota>()
+                    .AsNoTracking()
+                    .AnyAsync(m =>
+                        m.IDMota != id &&
+                        !string.IsNullOrWhiteSpace(m.NumeroIdentificacao) &&
+                        m.NumeroIdentificacao!.ToUpper() == numeroIdentificacao);
+
+                if (vinDuplicado)
+                    return Conflict(new { message = "Já existe outra mota com esse VIN / Número de Identificação." });
+            }
+
+            mota.NumeroIdentificacao = numeroIdentificacao;
+            mota.Cor = cor;
+            mota.Quilometragem = req.Quilometragem;
+
+            await _db.SaveChangesAsync();
+
+            return Ok(new
+            {
+                message = "Mota atualizada com sucesso.",
+                mota.IDMota,
+                mota.NumeroIdentificacao,
+                vinPreenchido = !string.IsNullOrWhiteSpace(mota.NumeroIdentificacao),
+                mota.Cor,
+                mota.Quilometragem
+            });
+        }
+
+        // GET /api/motas/{id}/pecas-fixas
+        [HttpGet("{id:int}/pecas-fixas")]
+        public async Task<IActionResult> GetPecasFixas(int id)
+        {
+            var mota = await _db.Set<Mota>()
+                .AsNoTracking()
+                .FirstOrDefaultAsync(m => m.IDMota == id);
+
+            if (mota == null)
+                return NotFound(new { message = "Mota não encontrada." });
+
+            var lista = await _db.Set<ModeloPecasFixa>()
+                .AsNoTracking()
+                .Where(x => x.IDModelo == mota.IDModelo)
+                .Join(
+                    _db.Set<Peca>().AsNoTracking(),
+                    mpf => mpf.IDPeca,
+                    p => p.IDPeca,
+                    (mpf, p) => new
+                    {
+                        mpf.IDMPF,
+                        mpf.IDModelo,
+                        mpf.IDPeca,
+                        p.PartNumber,
+                        p.Descricao,
+                        mpf.EspecificacaoPadrao
+                    })
+                .OrderBy(x => x.PartNumber)
+                .ToListAsync();
+
+            return Ok(new
+            {
+                motaId = mota.IDMota,
+                idModelo = mota.IDModelo,
+                total = lista.Count,
+                pecas = lista
             });
         }
 
