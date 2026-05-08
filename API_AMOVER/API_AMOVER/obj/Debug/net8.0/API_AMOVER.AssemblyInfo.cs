@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("API_AMOVER")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+2bfc73910340e26ca095b6b9d84582ffa850abaf")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+525037a4fde307363646c7fcb80d6f6a4d5c55aa")]
 [assembly: System.Reflection.AssemblyProductAttribute("API_AMOVER")]
 [assembly: System.Reflection.AssemblyTitleAttribute("API_AMOVER")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

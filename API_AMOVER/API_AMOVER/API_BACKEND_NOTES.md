@@ -91,11 +91,14 @@
 ## Endpoints — Fase 2 (esta sessão)
 
 ### OrdensController — novos endpoints
-| Método | Rota                              | Descrição                                                                                       |
-|--------|-----------------------------------|-------------------------------------------------------------------------------------------------|
-| GET    | `/api/ordens/prontos-expedicao`   | Ordens CONCLUÍDAS com mota, cliente, modelo e VIN (proxy para "pronto para expedir")            |
-| POST   | `/api/ordens/{id}/bloquear`       | Bloqueia ordem. Body: `{ "motivo": "..." }` (obrigatório). Motivo não é persistido na BD atual  |
-| POST   | `/api/ordens/{id}/desbloquear`    | Desbloqueia ordem → repõe ABERTA ou EM_PRODUÇÃO (heurística). Body opcional: `{ "resolucao": "..." }`. Resolução não é persistida |
+| Método | Rota                                | Descrição                                                                                       |
+|--------|-------------------------------------|-------------------------------------------------------------------------------------------------|
+| GET    | `/api/ordens/prontos-expedicao`     | Ordens CONCLUÍDAS com mota, cliente, modelo e VIN (proxy para "pronto para expedir")            |
+| GET    | `/api/ordens/{id}/historico`        | Histórico calculado da ordem: criação, transições de estado, unidade, VIN, conclusão, bloqueio  |
+| POST   | `/api/ordens/{id}/bloquear`         | Bloqueia ordem. Body: `{ "motivo": "..." }` (obrigatório). Motivo não é persistido              |
+| POST   | `/api/ordens/{id}/desbloquear`      | Desbloqueia → repõe ABERTA ou EM_PRODUÇÃO (heurística). Body opcional: `{ "resolucao": "..." }` |
+| POST   | `/api/ordens/{id}/marcar-embalada`  | Valida pré-condições de embalagem (CONCLUIDA + checklist embalagem). Sem DB write (sem campo na BD) |
+| POST   | `/api/ordens/{id}/marcar-enviada`   | Valida pré-condições + transita mota.Estado de 0→1 (Ativa) como proxy de envio. Sem data expedição |
 
 ### DashboardController — `/api/dashboard` (novo ficheiro)
 | Método | Rota                    | Descrição                                                                              |
@@ -142,7 +145,16 @@ Todos os alertas têm `"calculado": true` — são derivados em tempo real do es
 ### Expedição sem campos específicos
 - Não existe tabela nem campo de "expedição" (data de envio, transportadora, guia, etc.).
 - `GET /api/ordens/prontos-expedicao` devolve as ordens CONCLUÍDAS como proxy para "pronto para expedir".
-- Para controlo real de expedição, é necessária migration com tabela `Expedicao`.
+- `POST /api/ordens/{id}/marcar-embalada` valida pré-condições (CONCLUIDA + checklist embalagem) mas **não persiste** nenhum evento — sem campo `DataEmbalagem` na BD.
+- `POST /api/ordens/{id}/marcar-enviada` transita `Mota.Estado` de 0 (Em Produção) → 1 (Ativa) como proxy de envio. Sem data de expedição, transportadora ou guia.
+- Para controlo real de expedição, é necessária migration com tabela `Expedicao` (DataEnvio, Transportadora, GuiaEnvio, DataEmbalagem).
+
+### Histórico sem tabela de auditoria
+- Não existe tabela de auditoria nem log de transições de estado.
+- `GET /api/ordens/{id}/historico` devolve histórico **calculado** a partir do estado atual: DataCriacao, DataConclusao, Mota.DataRegisto.
+- Timestamps de transições de estado (Aberta→Em Produção, →Bloqueada) são **aproximados** — usa DataCriacao como anchor mínimo.
+- Campo `calculado: true` em todos os eventos indica que são derivados, não de um log real.
+- Para histórico real, é necessária migration com tabela `HistoricoOrdem` (DataTransicao, EstadoAnterior, EstadoNovo, UtilizadorId, Motivo).
 
 ### Desbloquear sem estado anterior
 - `desbloquear` usa heurística: se existem checklists inicializados → EM_PRODUCAO, caso contrário → ABERTA.
@@ -191,4 +203,7 @@ O estado `ESTADO_BLOQUEADA=3` é apenas um novo valor inteiro na coluna `Estado`
 | Lista ordens prontas para expedição               | `GET /api/ordens/prontos-expedicao`                 |
 | Alertas calculados (bloqueios, avarias, etc.)     | `GET /api/alertas`                                  |
 | Dashboard agregado da fábrica                     | `GET /api/dashboard/resumo`                         |
+| Histórico calculado da ordem                      | `GET /api/ordens/{id}/historico`                    |
+| Validar pré-condições de embalagem                | `POST /api/ordens/{id}/marcar-embalada`             |
+| Marcar unidade como enviada (mota → Ativa)        | `POST /api/ordens/{id}/marcar-enviada`              |
 | Utilizadores atribuídos à mota de uma ordem       | `GET /api/ordens/{id}/utilizadores`                 |
