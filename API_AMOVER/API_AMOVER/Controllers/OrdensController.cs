@@ -101,6 +101,11 @@ namespace API_AMOVER.Controllers
         public string Motivo { get; set; } = string.Empty;
     }
 
+    public class DesbloquearOrdemRequest
+    {
+        public string? Resolucao { get; set; }
+    }
+
     [ApiController]
     [Route("api/ordens")]
     public class OrdensController : ControllerBase
@@ -649,9 +654,6 @@ namespace API_AMOVER.Controllers
             if (req == null)
                 return BadRequest(new { message = "Body inválido." });
 
-            if (!EstadoMotaValido(req.Estado))
-                return BadRequest(new { message = "Estado inválido para mota." });
-
             if (req.Quilometragem < 0)
                 return BadRequest(new { message = "Quilometragem inválida." });
 
@@ -705,7 +707,7 @@ namespace API_AMOVER.Controllers
                 IDModelo = modeloFinal,
                 Cor = string.IsNullOrWhiteSpace(req.Cor) ? "N/A" : req.Cor.Trim(),
                 Quilometragem = req.Quilometragem,
-                Estado = req.Estado,
+                Estado = ESTADO_MOTA_EM_PRODUCAO,
                 NumeroIdentificacao = numeroIdentificacao,
                 DataRegisto = DateTime.UtcNow
             };
@@ -809,6 +811,9 @@ namespace API_AMOVER.Controllers
             if (req == null)
                 return BadRequest(new { message = "Body inválido." });
 
+            if (string.IsNullOrWhiteSpace(req.Motivo))
+                return BadRequest(new { message = "O motivo do bloqueio é obrigatório." });
+
             var ordem = await _db.Set<OrdemProducao>()
                 .FirstOrDefaultAsync(o => o.IDOrdemProducao == id);
 
@@ -837,7 +842,7 @@ namespace API_AMOVER.Controllers
 
         // POST /api/ordens/{id}/desbloquear
         [HttpPost("{id:int}/desbloquear")]
-        public async Task<IActionResult> DesbloquearOrdem(int id)
+        public async Task<IActionResult> DesbloquearOrdem(int id, [FromBody] DesbloquearOrdemRequest? req = null)
         {
             var ordem = await _db.Set<OrdemProducao>()
                 .FirstOrDefaultAsync(o => o.IDOrdemProducao == id);
@@ -858,12 +863,16 @@ namespace API_AMOVER.Controllers
 
             var resumo = await BuildResumoAsync(id);
 
+            var resolucaoTrimmed = string.IsNullOrWhiteSpace(req?.Resolucao) ? null : req.Resolucao.Trim();
+
             return Ok(new
             {
                 message = $"Ordem desbloqueada com sucesso. Estado reposto para '{GetEstadoOrdemNome(ordem.Estado)}'.",
                 ordemId = id,
                 estado = ordem.Estado,
                 estadoNome = GetEstadoOrdemNome(ordem.Estado),
+                resolucao = resolucaoTrimmed,
+                aviso = resolucaoTrimmed != null ? "A resolução foi registada mas não é persistida. A BD atual não tem campo para o efeito." : null,
                 resumo
             });
         }

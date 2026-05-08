@@ -91,11 +91,29 @@
 ## Endpoints — Fase 2 (esta sessão)
 
 ### OrdensController — novos endpoints
-| Método | Rota                              | Descrição                                                                      |
-|--------|-----------------------------------|--------------------------------------------------------------------------------|
-| GET    | `/api/ordens/prontos-expedicao`   | Ordens CONCLUÍDAS com mota, cliente, modelo e VIN (prontas para expedição)     |
-| POST   | `/api/ordens/{id}/bloquear`       | Bloqueia ordem (body: `{ "motivo": "..." }`). Motivo não é persistido na BD atual |
-| POST   | `/api/ordens/{id}/desbloquear`    | Desbloqueia ordem → repõe ABERTA ou EM_PRODUÇÃO (heurística por checklists)   |
+| Método | Rota                              | Descrição                                                                                       |
+|--------|-----------------------------------|-------------------------------------------------------------------------------------------------|
+| GET    | `/api/ordens/prontos-expedicao`   | Ordens CONCLUÍDAS com mota, cliente, modelo e VIN (proxy para "pronto para expedir")            |
+| POST   | `/api/ordens/{id}/bloquear`       | Bloqueia ordem. Body: `{ "motivo": "..." }` (obrigatório). Motivo não é persistido na BD atual  |
+| POST   | `/api/ordens/{id}/desbloquear`    | Desbloqueia ordem → repõe ABERTA ou EM_PRODUÇÃO (heurística). Body opcional: `{ "resolucao": "..." }`. Resolução não é persistida |
+
+### DashboardController — `/api/dashboard` (novo ficheiro)
+| Método | Rota                    | Descrição                                                                              |
+|--------|-------------------------|----------------------------------------------------------------------------------------|
+| GET    | `/api/dashboard/resumo` | Métricas agregadas da fábrica + lista de ordens com estado, cliente, modelo e alertas  |
+
+**Campos do resumo:**
+| Campo              | Tipo | Descrição                                                                        |
+|--------------------|------|----------------------------------------------------------------------------------|
+| `totalOrdens`      | int  | Total de ordens na BD                                                            |
+| `emProducao`       | int  | Ordens com Estado=1                                                              |
+| `bloqueadas`       | int  | Ordens com Estado=3                                                              |
+| `semUnidade`       | int  | Ordens EM_PRODUCAO sem mota associada                                            |
+| `controloPendente` | int  | Ordens com pelo menos um item de ChecklistControlo por fechar (ControloFinal=0)  |
+| `vinPendente`      | int  | Motas sem VIN preenchido                                                         |
+| `equipaAtiva`      | int  | UtilizadorMotum com Estado=1 (atribuições ativas)                                |
+| `servicosEmAberto` | int  | Serviços com Estado≠2 (não concluídos)                                           |
+| `ordens`           | list | Por ordem: ordemId, numeroOrdem, estado, estadoNome, modeloNome, clienteNome, temMota, vinPreenchido, controloPendente |
 
 ### AlertasController — `/api/alertas` (novo ficheiro)
 | Método | Rota                               | Descrição                                                      |
@@ -136,6 +154,22 @@ Todos os alertas têm `"calculado": true` — são derivados em tempo real do es
 
 ---
 
+## Comportamentos forçados pela API
+
+### Estado da mota criada numa ordem (POST /api/ordens/{id}/motas)
+- A API ignora o campo `estado` enviado no body e força sempre `Estado = 0` (Em Produção).
+- O DTO `CriarMotaRequest` mantém o campo por compatibilidade, mas é descartado.
+- **Razão:** uma mota criada dentro de uma ordem de produção nunca pode nascer Ativa, Em Manutenção ou Descontinuada.
+
+### Motivo de bloqueio obrigatório (POST /api/ordens/{id}/bloquear)
+- Se `motivo` vier null, vazio ou só espaços → 400 `{ "message": "O motivo do bloqueio é obrigatório." }`
+- O motivo não é persistido (sem campo na BD). É ecoado na resposta + `aviso`.
+
+### Resolução de desbloqueio opcional (POST /api/ordens/{id}/desbloquear)
+- Body opcional: `{ "resolucao": "..." }`. Se preenchida, é ecoada na resposta + `aviso`. Não persistida.
+
+---
+
 ## Migrações / Alterações à BD
 **Nenhuma.** Todos os endpoints desta fase respeitam a estrutura existente.
 
@@ -151,8 +185,10 @@ O estado `ESTADO_BLOQUEADA=3` é apenas um novo valor inteiro na coluna `Estado`
 | Lista de ordens com nomes de cliente/modelo       | `GET /api/ordens?includeNomes=true`                 |
 | Editar mota (cor, km, VIN) numa chamada           | `PUT /api/motas/{id}`                               |
 | Reabrir ordem concluída (tab Ações)               | `POST /api/ordens/{id}/reabrir`                     |
-| Bloquear/desbloquear ordem (tab Ações)            | `POST /api/ordens/{id}/bloquear` e `/desbloquear`   |
+| Bloquear ordem (motivo obrigatório)               | `POST /api/ordens/{id}/bloquear`                    |
+| Desbloquear ordem (resolução opcional)            | `POST /api/ordens/{id}/desbloquear`                 |
 | Ver peças fixas do modelo da mota                 | `GET /api/motas/{id}/pecas-fixas`                   |
 | Lista ordens prontas para expedição               | `GET /api/ordens/prontos-expedicao`                 |
-| Dashboard de alertas/problemas ativos             | `GET /api/alertas`                                  |
+| Alertas calculados (bloqueios, avarias, etc.)     | `GET /api/alertas`                                  |
+| Dashboard agregado da fábrica                     | `GET /api/dashboard/resumo`                         |
 | Utilizadores atribuídos à mota de uma ordem       | `GET /api/ordens/{id}/utilizadores`                 |
