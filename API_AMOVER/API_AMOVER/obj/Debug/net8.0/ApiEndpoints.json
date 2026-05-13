@@ -1,5 +1,31 @@
 [
   {
+    "ContainingType": "API_AMOVER.Controllers.AlertasController",
+    "Method": "GetAlertas",
+    "RelativePath": "api/alertas",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "ordemId",
+        "Type": "System.Nullable\u00601[[System.Int32, System.Private.CoreLib, Version=8.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]]",
+        "IsRequired": false
+      },
+      {
+        "Name": "tipo",
+        "Type": "System.String",
+        "IsRequired": false
+      },
+      {
+        "Name": "severidade",
+        "Type": "System.String",
+        "IsRequired": false
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
     "ContainingType": "API_AMOVER.Controllers.AuthController",
     "Method": "Login",
     "RelativePath": "api/Auth/login",
@@ -128,6 +154,16 @@
         "IsRequired": true
       }
     ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "API_AMOVER.Controllers.DashboardController",
+    "Method": "GetResumo",
+    "RelativePath": "api/dashboard/resumo",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
     "ReturnTypes": []
   },
   {
@@ -601,6 +637,27 @@
   },
   {
     "ContainingType": "API_AMOVER.Controllers.MotasController",
+    "Method": "Update",
+    "RelativePath": "api/motas/{id}",
+    "HttpMethod": "PUT",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "id",
+        "Type": "System.Int32",
+        "IsRequired": true
+      },
+      {
+        "Name": "req",
+        "Type": "API_AMOVER.Controllers.UpdateMotaRequest",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "API_AMOVER.Controllers.MotasController",
     "Method": "UpdateEstado",
     "RelativePath": "api/motas/{id}/estado",
     "HttpMethod": "PUT",
@@ -636,6 +693,22 @@
       {
         "Name": "req",
         "Type": "API_AMOVER.Controllers.UpdateNumeroIdentificacaoRequest",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "API_AMOVER.Controllers.MotasController",
+    "Method": "GetPecasFixas",
+    "RelativePath": "api/motas/{id}/pecas-fixas",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "id",
+        "Type": "System.Int32",
         "IsRequired": true
       }
     ],
@@ -738,6 +811,11 @@
         "Name": "estado",
         "Type": "System.Nullable\u00601[[System.Int32, System.Private.CoreLib, Version=8.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]]",
         "IsRequired": false
+      },
+      {
+        "Name": "includeNomes",
+        "Type": "System.Boolean",
+        "IsRequired": false
       }
     ],
     "ReturnTypes": []
@@ -754,6 +832,48 @@
         "Name": "id",
         "Type": "System.Int32",
         "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "API_AMOVER.Controllers.OrdensController",
+    "Method": "BloquearOrdem",
+    "RelativePath": "api/ordens/{id}/bloquear",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "id",
+        "Type": "System.Int32",
+        "IsRequired": true
+      },
+      {
+        "Name": "req",
+        "Type": "API_AMOVER.Controllers.BloquearOrdemRequest",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "API_AMOVER.Controllers.OrdensController",
+    "Method": "DesbloquearOrdem",
+    "RelativePath": "api/ordens/{id}/desbloquear",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "id",
+        "Type": "System.Int32",
+        "IsRequired": true
+      },
+      {
+        "Name": "req",
+        "Type": "API_AMOVER.Controllers.DesbloquearOrdemRequest",
+        "IsRequired": false
       }
     ],
     "ReturnTypes": []
@@ -781,6 +901,22 @@
   },
   {
     "ContainingType": "API_AMOVER.Controllers.OrdensController",
+    "Method": "GetFicha",
+    "RelativePath": "api/ordens/{id}/ficha",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "id",
+        "Type": "System.Int32",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "API_AMOVER.Controllers.OrdensController",
     "Method": "FinalizarOrdem",
     "RelativePath": "api/ordens/{id}/finalizar",
     "HttpMethod": "POST",
@@ -797,8 +933,56 @@
   },
   {
     "ContainingType": "API_AMOVER.Controllers.OrdensController",
+    "Method": "GetHistorico",
+    "RelativePath": "api/ordens/{id}/historico",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "id",
+        "Type": "System.Int32",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "API_AMOVER.Controllers.OrdensController",
     "Method": "IniciarOrdem",
     "RelativePath": "api/ordens/{id}/iniciar",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "id",
+        "Type": "System.Int32",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "API_AMOVER.Controllers.OrdensController",
+    "Method": "MarcarEmbalada",
+    "RelativePath": "api/ordens/{id}/marcar-embalada",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "id",
+        "Type": "System.Int32",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "API_AMOVER.Controllers.OrdensController",
+    "Method": "MarcarEnviada",
+    "RelativePath": "api/ordens/{id}/marcar-enviada",
     "HttpMethod": "POST",
     "IsController": true,
     "Order": 0,
@@ -850,6 +1034,22 @@
   },
   {
     "ContainingType": "API_AMOVER.Controllers.OrdensController",
+    "Method": "ReabrirOrdem",
+    "RelativePath": "api/ordens/{id}/reabrir",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "id",
+        "Type": "System.Int32",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "API_AMOVER.Controllers.OrdensController",
     "Method": "Resumo",
     "RelativePath": "api/ordens/{id}/resumo",
     "HttpMethod": "GET",
@@ -860,6 +1060,27 @@
         "Name": "id",
         "Type": "System.Int32",
         "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "API_AMOVER.Controllers.OrdensController",
+    "Method": "GetUtilizadoresDaOrdem",
+    "RelativePath": "api/ordens/{id}/utilizadores",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "id",
+        "Type": "System.Int32",
+        "IsRequired": true
+      },
+      {
+        "Name": "ativasOnly",
+        "Type": "System.Boolean",
+        "IsRequired": false
       }
     ],
     "ReturnTypes": []
@@ -977,6 +1198,16 @@
         "IsRequired": true
       }
     ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "API_AMOVER.Controllers.OrdensController",
+    "Method": "GetProntosExpedicao",
+    "RelativePath": "api/ordens/prontos-expedicao",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
     "ReturnTypes": []
   },
   {
