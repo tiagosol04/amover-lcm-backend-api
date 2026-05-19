@@ -302,7 +302,7 @@ public partial class LcmContext : DbContext
 
             entity.HasOne(d => d.IDModeloNavigation).WithMany(p => p.Mota).HasForeignKey(d => d.IDModelo);
 
-            entity.HasOne(d => d.IDOrdemProducaoNavigation).WithOne(p => p.Mota).HasForeignKey<Mota>(d => d.IDOrdemProducao);
+            entity.HasOne(d => d.IDOrdemProducaoNavigation).WithOne(p => p.Mota).HasForeignKey<Mota>(d => d.IDOrdemProducao).IsRequired(false);
         });
 
         modelBuilder.Entity<MotasPecasInfo>(entity =>

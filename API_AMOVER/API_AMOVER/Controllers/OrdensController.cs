@@ -767,7 +767,7 @@ namespace API_AMOVER.Controllers
             var modeloIds = ordens.Where(o => o.idModelo.HasValue).Select(o => o.idModelo!.Value).Distinct().ToList();
 
             var motas = await _db.Set<Mota>().AsNoTracking()
-                .Where(m => ordemIds.Contains(m.IDOrdemProducao))
+                .Where(m => m.IDOrdemProducao.HasValue && ordemIds.Contains(m.IDOrdemProducao.Value))
                 .Select(m => new { m.IDMota, m.IDOrdemProducao, m.NumeroIdentificacao, m.Cor, m.Quilometragem })
                 .ToListAsync();
 

@@ -86,7 +86,7 @@ namespace API_AMOVER.Controllers
                 from o in _db.Set<OrdemProducao>().AsNoTracking()
                 where o.Estado == ESTADO_ORDEM_EM_PRODUCAO
                 join m in _db.Set<Mota>().AsNoTracking()
-                    on o.IDOrdemProducao equals m.IDOrdemProducao into mJoin
+                    on (int?)o.IDOrdemProducao equals m.IDOrdemProducao into mJoin
                 from m in mJoin.DefaultIfEmpty()
                 where m == null
                 select new
@@ -123,7 +123,7 @@ namespace API_AMOVER.Controllers
             var queryServicos =
                 from s in _db.Set<Servico>().AsNoTracking()
                 join m in _db.Set<Mota>().AsNoTracking() on s.IDMota equals m.IDMota
-                join op in _db.Set<OrdemProducao>().AsNoTracking() on m.IDOrdemProducao equals op.IDOrdemProducao
+                join op in _db.Set<OrdemProducao>().AsNoTracking() on m.IDOrdemProducao equals (int?)op.IDOrdemProducao
                 where s.Estado != ESTADO_SERVICO_CONCLUIDO
                       && (s.Tipo == TIPO_SERVICO_AVARIA || s.Tipo == TIPO_SERVICO_GARANTIA)
                       && s.DataServico <= limite
