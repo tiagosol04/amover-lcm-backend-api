@@ -254,4 +254,3 @@ C:\Users\tiago\Desktop\API\API_AMOVER\API_AMOVER\obj\Debug\net8.0\refint\API_AMO
 C:\Users\tiago\Desktop\API\API_AMOVER\API_AMOVER\obj\Debug\net8.0\API_AMOVER.pdb
 C:\Users\tiago\Desktop\API\API_AMOVER\API_AMOVER\obj\Debug\net8.0\API_AMOVER.genruntimeconfig.cache
 C:\Users\tiago\Desktop\API\API_AMOVER\API_AMOVER\obj\Debug\net8.0\ref\API_AMOVER.dll
-C:\Users\tiago\Desktop\API\API_AMOVER\API_AMOVER\obj\Debug\net8.0\staticwebassets.upToDateCheck.txt

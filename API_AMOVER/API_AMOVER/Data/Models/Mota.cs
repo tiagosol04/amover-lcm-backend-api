@@ -17,13 +17,13 @@ public partial class Mota
 
     public int Estado { get; set; }
 
-    public int IDOrdemProducao { get; set; }
+    public int? IDOrdemProducao { get; set; }
 
     public string NumeroIdentificacao { get; set; } = null!;
 
     public virtual ModelosMotum IDModeloNavigation { get; set; } = null!;
 
-    public virtual OrdemProducao IDOrdemProducaoNavigation { get; set; } = null!;
+    public virtual OrdemProducao? IDOrdemProducaoNavigation { get; set; }
 
     public virtual ICollection<MotasPecasInfo> MotasPecasInfos { get; set; } = new List<MotasPecasInfo>();
 

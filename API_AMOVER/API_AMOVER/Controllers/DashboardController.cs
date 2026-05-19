@@ -80,7 +80,9 @@ namespace API_AMOVER.Controllers
             }
 
             // In-memory derived sets
-            var motasPorOrdem = motas.ToDictionary(m => m.IDOrdemProducao);
+            var motasPorOrdem = motas
+                .Where(m => m.IDOrdemProducao.HasValue)
+                .ToDictionary(m => m.IDOrdemProducao!.Value);
             var ordemIdsComMota = motasPorOrdem.Keys.ToHashSet();
 
             // Per-order list
