@@ -148,6 +148,16 @@ namespace API_AMOVER.Controllers
 
             return Ok(new
             {
+                // campos no topo para acesso rápido pela app
+                userId = authUserId,
+                username,
+                email,
+                roles,
+                idUtilizador = utilizador?.IdUtilizador,
+                nomeUtilizador = utilizador?.Nome,
+                estadoUtilizador = utilizador?.Estado,
+                estadoUtilizadorNome = utilizador == null ? null : GetEstadoUtilizadorNome(utilizador.Estado),
+                // objetos nested mantidos para compatibilidade
                 auth = new
                 {
                     userId = authUserId,
