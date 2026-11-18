@@ -68,7 +68,7 @@ var jwtIssuer = jwtSection.GetValue<string>("Issuer");
 var jwtAudience = jwtSection.GetValue<string>("Audience");
 
 if (string.IsNullOrWhiteSpace(jwtKey))
-    throw new InvalidOperationException("Falta configurar Jwt:Key no appsettings.json");
+    throw new InvalidOperationException("Falta configurar Jwt:Key (use dotnet user-secrets ou variáveis de ambiente — ver README).");
 if (string.IsNullOrWhiteSpace(jwtIssuer))
     throw new InvalidOperationException("Falta configurar Jwt:Issuer no appsettings.json");
 if (string.IsNullOrWhiteSpace(jwtAudience))

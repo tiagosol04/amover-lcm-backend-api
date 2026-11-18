@@ -107,7 +107,7 @@ API_AMOVER/
 ├── API_AMOVER.sln
 └── API_AMOVER/
     ├── Program.cs                 # App bootstrap: CORS, JWT, DbContext, Swagger
-    ├── appsettings.json           # Connection string, JWT config, logging
+    ├── appsettings.json           # JWT issuer/audience, logging (secrets via user-secrets)
     ├── Controllers/               # The REST surface (16 controllers)
     │   ├── AuthController.cs           # Login + identity
     │   ├── OrdensController.cs         # Production orders (the heart)
@@ -144,33 +144,28 @@ API_AMOVER/
 ### 1. Clone & restore
 
 ```bash
-git clone <your-repo-url>
+git clone https://github.com/tiagosol04/amover-lcm-backend-api.git
 cd amover-lcm-backend-api/API_AMOVER/API_AMOVER
 dotnet restore
 ```
 
 ### 2. Configure
 
-Update `appsettings.json` with your own environment values — **never commit real
-credentials or secrets.** Prefer user-secrets or environment variables in practice.
+`appsettings.json` ships with **empty secrets on purpose**. Provide them locally with
+[.NET user-secrets](https://learn.microsoft.com/aspnet/core/security/app-secrets) (the project
+already has a `UserSecretsId`) or with environment variables — never in the repository.
 
-```jsonc
-{
-  "ConnectionStrings": {
-    "LCMDatabase": "Server=<host>,1433;Database=LCMDatabase;User Id=<user>;Password=<secret>;Encrypt=True;TrustServerCertificate=True;MultipleActiveResultSets=True"
-  },
-  "Jwt": {
-    "Key": "<a-long-random-secret-key>",
-    "Issuer": "API_AMOVER",
-    "Audience": "AMoverMobile",
-    "ExpiresInMinutes": 120
-  }
-}
+```bash
+# from API_AMOVER/API_AMOVER
+dotnet user-secrets set "ConnectionStrings:LCMDatabase" "Server=<host>,1433;Database=LCMDatabase;User Id=<user>;Password=<secret>;Encrypt=True;TrustServerCertificate=True;MultipleActiveResultSets=True"
+dotnet user-secrets set "Jwt:Key" "<a-long-random-key-of-at-least-32-characters>"
 ```
 
-> ⚠️ **Security note:** the sample `appsettings.json` in this repo ships with a hard-coded
-> connection string and JWT key for local development. Rotate these and move them to a
-> secret store before anything leaves your machine.
+Environment-variable equivalent (e.g. in Docker or CI): `ConnectionStrings__LCMDatabase` and `Jwt__Key`.
+If `Jwt:Key` is missing, the API stops at startup with an explicit configuration error.
+
+> 🔒 **Security:** use a dedicated, least-privilege SQL login for the API (never `sa`) and a
+> randomly generated JWT key per environment.
 
 ### 3. Apply migrations (optional)
 
@@ -351,7 +346,7 @@ table, block-reason column) would turn these proxies into fully persisted featur
 - [ ] `Expedicao` table: dispatch date, carrier, waybill, packaging date
 - [ ] Persisted block reasons + previous-state restoration on unblock
 - [ ] Quality alerts (incomplete checklists, missing serialized parts) computed in batch
-- [ ] Secrets moved to environment / secret store; sample credentials removed
+- [x] Secrets moved to user-secrets / environment variables; build outputs removed from the repository
 
 ---
 

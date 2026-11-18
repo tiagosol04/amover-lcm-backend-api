@@ -1,2 +1,28 @@
-
+## .NET / Visual Studio
+bin/
+obj/
+[Dd]ebug/
+[Rr]elease/
+x64/
+x86/
+*.user
+*.suo
+*.userosscache
+*.rsuser
+*.sln.docstates
 .vs/
+*.pdb
+**/packages/*
+
+## Rider / VS Code
+.idea/
+.vscode/
+
+## Secrets — never commit
+appsettings.*.local.json
+secrets.json
+.env
+*.pfx
+
+## Local tooling
+.claude/
